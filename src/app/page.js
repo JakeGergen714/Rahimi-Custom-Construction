@@ -362,10 +362,10 @@ export default function Home() {
               {/* Image 1 */}
               <div className='col-span-1 md:col-span-3 lg:col-span-3 row-span-1 relative overflow-hidden'>
                 <Image
-                  src='/1.jpeg'
+                  src='/slideshow/custom-shelf.jpeg'
                   width={800}
                   height={600}
-                  className='object-contain w-full h-full'
+                  className='bject-cover w-full h-full'
                   alt='Custom woodworking project portfolio image'
                 />
                 <div className='absolute inset-0 bg-orange-700 opacity-10'></div>
@@ -374,10 +374,10 @@ export default function Home() {
               {/* Image 2 */}
               <div className='col-span-1 md:col-span-5 row-span-1 relative overflow-hidden'>
                 <Image
-                  src='/7.webp'
+                  src='/slideshow/custom-handrail.webp'
                   width={800}
                   height={600}
-                  className='object-cover w-full h-full'
+                  className='bject-cover w-full h-full'
                   alt='Home renovation project in Knoxville, TN'
                 />
                 <div className='absolute inset-0 bg-orange-700 opacity-10'></div>
@@ -386,10 +386,10 @@ export default function Home() {
               {/* Image 3 */}
               <div className='col-span-1 md:col-span-4 lg:col-span-4 row-span-1 relative overflow-hidden'>
                 <Image
-                  src='/2.jpeg'
+                  src='/slideshow/renovation.webp'
                   width={800}
                   height={600}
-                  className='object-contain w-full h-full'
+                  className='bject-cover w-full h-full'
                   alt='Deck and porch project portfolio image'
                 />
                 <div className='absolute inset-0 bg-orange-700 opacity-10'></div>
@@ -398,10 +398,10 @@ export default function Home() {
               {/* Image 4 */}
               <div className='col-span-1 md:col-span-4 lg:col-span-4 row-span-1 relative overflow-hidden'>
                 <Image
-                  src='/3.jpeg'
+                  src='/slideshow/custom-cabinet.jpeg'
                   width={800}
                   height={600}
-                  className='object-contain w-full h-full'
+                  className='object-cover w-full h-full'
                   alt='Custom railing and stair project in Knoxville, TN'
                 />
                 <div className='absolute inset-0 bg-orange-700 opacity-10'></div>

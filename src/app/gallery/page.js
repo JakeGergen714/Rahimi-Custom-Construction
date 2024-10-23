@@ -9,10 +9,34 @@ const GallerySlider = dynamic(() => import('./GallerySlider'), { ssr: false });
 // Server Component (SEO-optimized images rendered server-side)
 export default function GalleryPage() {
   const images = [
-    { src: '/1.jpeg', alt: 'Custom Shelving and Cabinets | Knoxville, TN' },
-    { src: '/2.jpeg', alt: 'Custom Shelving and Cabinets | Knoxville, TN' },
-    { src: '/7.webp', alt: 'Custom Handrail and Stairs | Knoxville, TN' },
-    { src: '/3.jpeg', alt: 'Custom Awning outdoor BBQ Area | Knoxville, TN' },
+    {
+      src: '/slideshow/custom-shelf.jpeg',
+      alt: 'Custom Shelving and Cabinets | Knoxville, TN',
+    },
+    {
+      src: '/slideshow/custom-cabinet.jpeg',
+      alt: 'Custom Shelving and Cabinets | Knoxville, TN',
+    },
+    {
+      src: '/slideshow/custom-handrail.webp',
+      alt: 'Custom Handrail and Stairs | Knoxville, TN',
+    },
+    {
+      src: '/slideshow/custom-awning.jpeg',
+      alt: 'Custom Awning | Outdoor BBQ Area | Knoxville, TN',
+    },
+    {
+      src: '/slideshow/custom-bookcase-knoxville-tn.jpeg',
+      alt: 'Custom Bookcase | Knoxville, TN',
+    },
+    {
+      src: '/slideshow/custom-shelf-knoxville.jpeg',
+      alt: 'Custom Shelf and Lighting | Knoxville, TN',
+    },
+    {
+      src: '/slideshow/renovation.webp',
+      alt: 'Custom Home Renovation | Knoxville, TN',
+    },
   ];
 
   return (
