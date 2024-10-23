@@ -1,0 +1,11 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /invoices
+Disallow: /login
+
+# Host
+Host: https://www.rahimicustomconstruction.com
+
+# Sitemaps
+Sitemap: https://www.rahimicustomconstruction.com/sitemap.xml
