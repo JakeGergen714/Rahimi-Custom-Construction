@@ -3,6 +3,38 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Home() {
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent the default form submission behavior
+
+    // Create a form data object from the event
+    const formData = new FormData(e.target);
+    const formObject = {};
+    formData.forEach((value, key) => {
+      formObject[key] = value;
+    });
+
+    try {
+      const response = await fetch('/api/send-contact-us-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formObject),
+      });
+
+      if (response.ok) {
+        alert('Message sent successfully!');
+        e.target.reset(); // Optionally reset the form
+      } else {
+        const { error } = await response.json();
+        alert(error || 'Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message. Please try again.');
+    }
+  };
+
   return (
     <div>
       <Head>
@@ -440,14 +472,15 @@ export default function Home() {
             {/* Centered Form */}
             <div className='w-full md:w-1/2'>
               <form
-                action='/api/contact'
+                id='contactForm'
+                action='/api/send-contact-us-email'
                 method='POST'
                 className='bg-transparent text-white p-6 shadow-md rounded-md'
               >
                 <div className='mb-6'>
                   <label
                     htmlFor='name'
-                    className='block text-sm font-bold mb-2'
+                    className='block text-sm text-white font-bold mb-2'
                   >
                     Name
                   </label>
@@ -455,14 +488,14 @@ export default function Home() {
                     type='text'
                     id='name'
                     name='name'
-                    className='w-full p-3 border rounded'
+                    className='w-full p-3 text-black border rounded'
                     required
                   />
                 </div>
                 <div className='mb-6'>
                   <label
                     htmlFor='email'
-                    className='block text-sm font-bold mb-2'
+                    className='block text-sm text-white font-bold mb-2'
                   >
                     Email
                   </label>
@@ -470,7 +503,7 @@ export default function Home() {
                     type='email'
                     id='email'
                     name='email'
-                    className='w-full p-3 border rounded'
+                    className='w-full p-3 text-black border rounded'
                     required
                   />
                 </div>
@@ -485,7 +518,7 @@ export default function Home() {
                     type='tel'
                     id='phone'
                     name='phone'
-                    className='w-full p-3 border rounded'
+                    className='w-full p-3 text-black border rounded'
                     required
                   />
                 </div>
@@ -499,18 +532,65 @@ export default function Home() {
                   <textarea
                     id='message'
                     name='message'
-                    className='w-full p-3 border rounded'
+                    className='w-full p-3 text-black border rounded'
                     rows='5'
                     required
                   ></textarea>
                 </div>
                 <button
                   type='submit'
+                  id='submitButton'
                   className='w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700'
                 >
                   Send Message
                 </button>
               </form>
+
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const formObject = {};
+          formData.forEach((value, key) => {
+            formObject[key] = value;
+          });
+
+          const submitButton = document.getElementById('submitButton');
+          submitButton.disabled = true;
+          submitButton.innerHTML = '<div class="loader"></div> Sending...';
+
+          try {
+            const response = await fetch('/api/send-contact-us-email', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(formObject),
+            });
+
+            if (response.ok) {
+              submitButton.innerHTML = 'Message Sent';
+              submitButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+              submitButton.classList.add('bg-green-600');
+              e.target.reset();
+            } else {
+              const { error } = await response.json();
+              alert(error || 'Failed to send message. Please try again.');
+              submitButton.disabled = false;
+              submitButton.innerHTML = 'Send Message';
+            }
+          } catch (error) {
+            console.error('Error sending message:', error);
+            alert('Failed to send message. Please try again.');
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Send Message';
+          }
+        });
+      `,
+                }}
+              />
             </div>
           </div>
         </div>
