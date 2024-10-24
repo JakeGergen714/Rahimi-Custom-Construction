@@ -26,7 +26,7 @@ body {
 }
 
 .landing-page-container {
-  @apply w-screen h-screen bg-no-repeat bg-cover bg-center bg-fixed;
+  @apply w-screen h-screen bg-no-repeat bg-center;
   background-image: url('./assets/pexels-photo-6969864.jpeg');
 }
 .landing-page-overlay {
