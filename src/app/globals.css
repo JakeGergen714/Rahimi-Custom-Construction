@@ -34,7 +34,7 @@ body {
 }
 
 @media only screen and (max-width: 768px) {
-  [style*='background'] {
+  .background-image {
     background-attachment: scroll !important; /* Override any fixed background attachments */
     background-position: center;
     background-repeat: no-repeat;
