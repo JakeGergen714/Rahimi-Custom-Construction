@@ -39,7 +39,7 @@ body {
 }
 .detailed-services-container-with-overlay {
   @apply relative bg-fixed bg-cover bg-center p-6 md:p-16;
-  background-image: url('/9.webp');
+  background-image: url('/8.webp');
 }
 
 .gallery-container {
@@ -68,7 +68,6 @@ body {
     background-attachment: scroll !important; /* Override any fixed background attachments */
     background-position: center;
     background-repeat: no-repeat;
-    background-image: url('/9.webp') !important;
   }
 
   .gallery-container {

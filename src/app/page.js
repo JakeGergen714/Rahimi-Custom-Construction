@@ -107,7 +107,7 @@ export default function Home() {
           </div>
         </div>
         <div className='services-container-with-overlay'>
-          <div className='absolute inset-0 bg-slate-800 opacity-60'></div>
+          <div className='absolute inset-0 bg-slate-950 opacity-60'></div>
 
           <div className='relative z-10'>
             {/* Who We Are Section - Centered */}
