@@ -41,9 +41,11 @@ body {
 }
 
 @media only screen and (max-width: 768px) {
-  .background-image {
-    background-size: contain; /* Ensure image fits within element */
+  [style*='background'] {
+    background-attachment: scroll !important; /* Override any fixed background attachments */
+    background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
   }
 }
 
