@@ -40,11 +40,11 @@ body {
 }
 
 .title-main {
-  @apply text-7xl font-bold text-slate-200 tracking-tighter;
+  @apply text-5xl font-bold text-slate-200 tracking-tighter md:text-7xl;
 }
 
 .title-sub {
-  @apply text-2xl mt-4 text-slate-200 tracking-tighter;
+  @apply text-xl mt-4 text-slate-200 tracking-tighter md:text-2xl;
 }
 
 .grid-container {
