@@ -26,7 +26,7 @@ body {
 }
 
 .landing-page-container {
-  @apply w-screen h-screen bg-no-repeat bg-center;
+  @apply w-screen h-screen bg-no-repeat bg-cover bg-center bg-fixed;
   background-image: url('./assets/pexels-photo-6969864.jpeg');
 }
 .landing-page-overlay {
@@ -34,7 +34,7 @@ body {
 }
 
 @media only screen and (max-width: 768px) {
-  .background-image {
+  .landing-page-container {
     background-attachment: scroll !important; /* Override any fixed background attachments */
     background-position: center;
     background-repeat: no-repeat;
