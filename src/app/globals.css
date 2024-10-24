@@ -35,11 +35,11 @@ body {
 
 .services-container-with-overlay {
   @apply relative bg-fixed bg-cover bg-center p-6 md:p-16;
-  background-image: url('/8.webp');
+  background-image: url('/12.jpg');
 }
 .detailed-services-container-with-overlay {
   @apply relative bg-fixed bg-cover bg-center p-6 md:p-16;
-  background-image: url('/8.webp');
+  background-image: url('/10.jpg');
 }
 
 .gallery-container {
