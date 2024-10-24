@@ -106,10 +106,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div
-          className='relative services-container-with-overlay bg-fixed bg-cover bg-center p-6 md:p-16'
-          style={{ backgroundImage: "url('/8.webp')" }}
-        >
+        <div className='services-container-with-overlay'>
           <div className='absolute inset-0 bg-slate-800 opacity-60'></div>
 
           <div className='relative z-10'>
@@ -187,7 +184,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className='services-container-with-overlay'>
+
+        <div className='detailed-services-container-with-overlay'>
           <div className='absolute inset-0 bg-slate-950 opacity-60'></div>
           <div className='relative z-10'>
             {/* What We Do Section */}
@@ -366,7 +364,7 @@ export default function Home() {
         </div>
         {/* Gallery Section */}
         <div className='gallery-container'>
-          <div className='absolute inset-0 bg-stone-800 opacity-70'></div>
+          <div className='absolute inset-0 bg-stone-950 opacity-70'></div>
 
           <div className='grid-container relative z-10'>
             {/* Portfolio Title */}
