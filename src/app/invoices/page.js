@@ -260,144 +260,146 @@ const AdminInvoicesPage2 = () => {
               </div>
             )}
 
-            <div className='table-container overflow-y-auto flex-grow min-h-0'>
-              <table className='table-auto w-full text-center'>
-                <thead className='border-b'>
-                  <tr>
-                    <th className='py-1 px-1 text-gray-400 font-medium'></th>
-                    <th className='py-1 px-1 text-gray-400 font-medium'>
-                      Amount Due
-                    </th>
-                    <th className='py-1 px-1 text-gray-400 font-medium'>
-                      Amount Paid
-                    </th>
-                    <th className='py-1 px-1 text-gray-400 font-medium'>
-                      Customer Email
-                    </th>
-                    <th className='py-1 px-1 text-gray-400 font-medium'>
-                      Created Date
-                    </th>
-                    <th className='py-1 px-1 text-gray-400 font-medium'>
-                      Due By
-                    </th>
-                    <th className='py-1 px-1 text-gray-400 font-medium'>
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className='text-black divide-y-2 divide-gray-200'>
-                  {invoices.map((invoice, index) => (
-                    <React.Fragment key={invoice.id}>
-                      <tr>
-                        <td
-                          className='py-2 px-1 pl-2 cursor-pointer text-blue-400 hover:text-blue-600'
-                          onClick={() => toggleRow(index)}
-                        >
-                          {expandedRowIndex === index ? (
-                            <AiOutlineMinus size={20} />
-                          ) : (
-                            <AiOutlinePlus size={20} />
-                          )}
-                        </td>
-                        <td className='py-1 px-1'>
-                          {(invoice.amount_due / 100).toFixed(2)}{' '}
-                          {invoice.currency.toUpperCase()}
-                        </td>
-                        <td className='py-1 px-1'>
-                          {(invoice.amount_paid / 100).toFixed(2)}{' '}
-                          {invoice.currency.toUpperCase()}
-                        </td>
-                        <td
-                          className='py-1 px-1 font-semibold max-w-10 truncate whitespace-nowrap overflow-hidden'
-                          title={invoice.customer_email}
-                        >
-                          {invoice.customer_email}
-                        </td>
-                        <td className='py-1 px-1'>
-                          {new Intl.DateTimeFormat('en-US', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                          }).format(new Date(invoice.created * 1000))}
-                        </td>
-                        <td className='py-1 px-1'>
-                          {new Intl.DateTimeFormat('en-US', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                          }).format(new Date(invoice.due_date * 1000))}
-                        </td>
+            {!loading && (
+              <div className='table-container overflow-y-auto flex-grow min-h-0'>
+                <table className='table-auto w-full text-center'>
+                  <thead className='border-b'>
+                    <tr>
+                      <th className='py-1 px-1 text-gray-400 font-medium'></th>
+                      <th className='py-1 px-1 text-gray-400 font-medium'>
+                        Amount Due
+                      </th>
+                      <th className='py-1 px-1 text-gray-400 font-medium'>
+                        Amount Paid
+                      </th>
+                      <th className='py-1 px-1 text-gray-400 font-medium'>
+                        Customer Email
+                      </th>
+                      <th className='py-1 px-1 text-gray-400 font-medium'>
+                        Created Date
+                      </th>
+                      <th className='py-1 px-1 text-gray-400 font-medium'>
+                        Due By
+                      </th>
+                      <th className='py-1 px-1 text-gray-400 font-medium'>
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className='text-black divide-y-2 divide-gray-200'>
+                    {invoices.map((invoice, index) => (
+                      <React.Fragment key={invoice.id}>
+                        <tr>
+                          <td
+                            className='py-2 px-1 pl-2 cursor-pointer text-blue-400 hover:text-blue-600'
+                            onClick={() => toggleRow(index)}
+                          >
+                            {expandedRowIndex === index ? (
+                              <AiOutlineMinus size={20} />
+                            ) : (
+                              <AiOutlinePlus size={20} />
+                            )}
+                          </td>
+                          <td className='py-1 px-1'>
+                            {(invoice.amount_due / 100).toFixed(2)}{' '}
+                            {invoice.currency.toUpperCase()}
+                          </td>
+                          <td className='py-1 px-1'>
+                            {(invoice.amount_paid / 100).toFixed(2)}{' '}
+                            {invoice.currency.toUpperCase()}
+                          </td>
+                          <td
+                            className='py-1 px-1 font-semibold max-w-10 truncate whitespace-nowrap overflow-hidden'
+                            title={invoice.customer_email}
+                          >
+                            {invoice.customer_email}
+                          </td>
+                          <td className='py-1 px-1'>
+                            {new Intl.DateTimeFormat('en-US', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                            }).format(new Date(invoice.created * 1000))}
+                          </td>
+                          <td className='py-1 px-1'>
+                            {new Intl.DateTimeFormat('en-US', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                            }).format(new Date(invoice.due_date * 1000))}
+                          </td>
 
-                        <td>{invoice.status}</td>
-                      </tr>
+                          <td>{invoice.status}</td>
+                        </tr>
 
-                      {expandedRowIndex === index && (
-                        <tr className='expanded-content'>
-                          <td colSpan='5'>
-                            <div
-                              ref={(el) => (contentRef.current[index] = el)}
-                              className='transition-all duration-500 ease-in-out overflow-hidden'
-                              style={{
-                                maxHeight:
-                                  expandedRowIndex === index
-                                    ? contentRef.current[index]?.scrollHeight +
-                                      'px'
-                                    : '0px',
-                              }}
-                            >
-                              <div className='py-1 px-1 sm:px-6 bg-slate-900 rounded-lg m-2 overflow-y-auto'>
-                                <div className='border-gray-600 mb-4'>
-                                  <div className='flex justify-between text-lg font-semibold text-gray-200'>
-                                    <span>{invoice.customer_email}</span>
-                                    <span>{invoice.number}</span>
+                        {expandedRowIndex === index && (
+                          <tr className='expanded-content'>
+                            <td colSpan='5'>
+                              <div
+                                ref={(el) => (contentRef.current[index] = el)}
+                                className='transition-all duration-500 ease-in-out overflow-hidden'
+                                style={{
+                                  maxHeight:
+                                    expandedRowIndex === index
+                                      ? contentRef.current[index]
+                                          ?.scrollHeight + 'px'
+                                      : '0px',
+                                }}
+                              >
+                                <div className='py-1 px-1 sm:px-6 bg-slate-900 rounded-lg m-2 overflow-y-auto'>
+                                  <div className='border-gray-600 mb-4'>
+                                    <div className='flex justify-between text-lg font-semibold text-gray-200'>
+                                      <span>{invoice.customer_email}</span>
+                                      <span>{invoice.number}</span>
+                                    </div>
                                   </div>
-                                </div>
-                                <div className='mb-4'>
-                                  <p className='font-semibold text-lg text-gray-100 mb-2'>
-                                    Invoice Details
-                                  </p>
-                                  <div className='border-t border-gray-600'>
-                                    {invoice.lines.data.map((item, i) => (
-                                      <div
-                                        key={i}
-                                        className='flex justify-between py-2 text-gray-400'
-                                      >
-                                        <span>{item.description}</span>
-                                        <span className='font-medium'>
-                                          {(
-                                            item.price.unit_amount / 100
-                                          ).toFixed(2)}{' '}
-                                          {invoice.currency.toUpperCase()}
-                                        </span>
-                                      </div>
-                                    ))}
+                                  <div className='mb-4'>
+                                    <p className='font-semibold text-lg text-gray-100 mb-2'>
+                                      Invoice Details
+                                    </p>
+                                    <div className='border-t border-gray-600'>
+                                      {invoice.lines.data.map((item, i) => (
+                                        <div
+                                          key={i}
+                                          className='flex justify-between py-2 text-gray-400'
+                                        >
+                                          <span>{item.description}</span>
+                                          <span className='font-medium'>
+                                            {(
+                                              item.price.unit_amount / 100
+                                            ).toFixed(2)}{' '}
+                                            {invoice.currency.toUpperCase()}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                                <div className='border-t border-gray-600 pt-4'>
-                                  <div className='flex justify-between text-lg font-semibold text-gray-200'>
-                                    <span>Total</span>
-                                    <span>
-                                      {(invoice.amount_due / 100).toFixed(2)}{' '}
-                                      {invoice.currency.toUpperCase()}
-                                    </span>
+                                  <div className='border-t border-gray-600 pt-4'>
+                                    <div className='flex justify-between text-lg font-semibold text-gray-200'>
+                                      <span>Total</span>
+                                      <span>
+                                        {(invoice.amount_due / 100).toFixed(2)}{' '}
+                                        {invoice.currency.toUpperCase()}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                            <button
-                              onClick={() => setVoidInvoice(invoice)}
-                              className='bg-red-500 text-white rounded-lg mb-2 px-2 py-1 sm:px-6 hover:bg-red-600 transition-all ml-auto flex-grow sm:flex-grow-0'
-                            >
-                              Void Invoice
-                            </button>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                              <button
+                                onClick={() => setVoidInvoice(invoice)}
+                                className='bg-red-500 text-white rounded-lg mb-2 px-2 py-1 sm:px-6 hover:bg-red-600 transition-all ml-auto flex-grow sm:flex-grow-0'
+                              >
+                                Void Invoice
+                              </button>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Load More Button */}
             {lastEvaluatedKey && (
