@@ -58,7 +58,6 @@ export async function GET(req) {
 
     // Fetch invoices from Stripe
     const invoices = await stripe.invoices.list(stripeParams);
-    console.log(invoices);
 
     // Check if there are more invoices to paginate through
     const lastEvaluatedKey = invoices.has_more
