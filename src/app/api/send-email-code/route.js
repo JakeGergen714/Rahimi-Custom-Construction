@@ -39,6 +39,9 @@ export async function POST(req) {
 
   // Generate a random 6-digit 2FA code
   const code = Math.floor(100000 + Math.random() * 900000).toString(); // Generates a 6-digit code
+  const currentTime = Math.floor(Date.now() / 1000); // Current time in Unix seconds
+  const ttl = currentTime + 3600; // Set TTL for 1 hour (3600 seconds) from now
+  console.log(ttl);
 
   // Create the DynamoDB entry
   const params = {
@@ -47,6 +50,7 @@ export async function POST(req) {
       email, // Partition key
       code, // The 2FA code
       timestamp: Date.now(), // When the code was generated
+      ttl,
     },
   };
 
