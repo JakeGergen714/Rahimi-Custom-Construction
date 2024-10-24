@@ -39,12 +39,13 @@ body {
 }
 .detailed-services-container-with-overlay {
   @apply relative bg-fixed bg-cover bg-center p-6 md:p-16;
-  background-image: url('/American-Wood-Cabinets-showroom-2-scaled.jpg');
+
+  background-image: url('/background-3.png');
 }
 
 .gallery-container {
   @apply relative bg-fixed bg-cover bg-center bg-white h-full overflow-hidden p-16 pb-16;
-  background-image: url('/background-3.png');
+  background-image: url('/American-Wood-Cabinets-showroom-2-scaled.jpg');
 }
 
 .contact-us-container {
