@@ -12,6 +12,8 @@ const templatePath = path.join(
 );
 let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
 
+const adminEmail = process.env.ADMIN_EMAIL;
+
 // Initialize DynamoDB
 const dynamoDb = new AWS.DynamoDB.DocumentClient({
   region: 'us-east-2',
@@ -26,6 +28,13 @@ export async function POST(req) {
 
   if (!email) {
     return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+  }
+
+  if (email != adminEmail) {
+    return NextResponse.json(
+      { error: 'Incorrect email address' },
+      { status: 400 }
+    );
   }
 
   // Generate a random 6-digit 2FA code

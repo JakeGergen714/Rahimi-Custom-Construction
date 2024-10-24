@@ -5,13 +5,6 @@ import jwt from 'jsonwebtoken';
 import AWS from 'aws-sdk';
 import { NextResponse } from 'next/server'; // Use NextResponse for responses
 
-// Initialize DynamoDB
-const dynamoDb = new AWS.DynamoDB.DocumentClient({
-  region: 'us-east-2',
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-});
-
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -68,8 +61,6 @@ export async function POST(req) {
     }
 
     const stripeCustomerId = stripeCustomer.id;
-
-    const invoiceDate = new Date().toISOString();
 
     // Step 2: Create the Invoice in Stripe
     const stripeInvoice = await stripe.invoices.create({
