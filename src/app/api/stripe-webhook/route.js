@@ -64,10 +64,6 @@ export async function POST(req) {
       return NextResponse.json({ received: true }, { status: 200 });
   }
 
-  console.log('hello');
-  console.log(invoice);
-  console.log(invoice.metadata);
-
   // Update the invoice status in DynamoDB
   const params = {
     TableName: 'rahimi-invoices',

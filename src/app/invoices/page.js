@@ -76,8 +76,8 @@ const AdminInvoicesPage2 = () => {
       const params = new URLSearchParams();
 
       // Add filters if they exist
-      if (filters.paid) params.append('status', 'Paid');
-      if (filters.unpaid) params.append('status', 'Unpaid');
+      if (filters.paid) params.append('status', 'paid');
+      if (filters.unpaid) params.append('status', 'open');
       if (filters.date) {
         params.append('startDate', filters.date.startDate.toISOString());
         params.append('endDate', filters.date.endDate.toISOString());
@@ -120,9 +120,9 @@ const AdminInvoicesPage2 = () => {
         } else {
           setInvoices(data.data); // Reset with the new filtered data
         }
-
+        console.log(data.lastKey);
         // Set the next key for pagination
-        setLastEvaluatedKey(data.lastEvaluatedKey || null);
+        setLastEvaluatedKey(data.lastKey || null);
       }
     } catch (error) {
       console.error('Failed to fetch invoices:', error);
@@ -266,13 +266,19 @@ const AdminInvoicesPage2 = () => {
                   <tr>
                     <th className='py-1 px-1 text-gray-400 font-medium'></th>
                     <th className='py-1 px-1 text-gray-400 font-medium'>
-                      Amount
+                      Amount Due
+                    </th>
+                    <th className='py-1 px-1 text-gray-400 font-medium'>
+                      Amount Paid
                     </th>
                     <th className='py-1 px-1 text-gray-400 font-medium'>
                       Customer Email
                     </th>
                     <th className='py-1 px-1 text-gray-400 font-medium'>
-                      Date
+                      Created Date
+                    </th>
+                    <th className='py-1 px-1 text-gray-400 font-medium'>
+                      Due By
                     </th>
                     <th className='py-1 px-1 text-gray-400 font-medium'>
                       Status
@@ -294,22 +300,32 @@ const AdminInvoicesPage2 = () => {
                           )}
                         </td>
                         <td className='py-1 px-1'>
-                          <div className='flex'>
-                            ${Number(invoice.invoiceAmount).toFixed(2)}
-                          </div>
+                          {(invoice.amount_due / 100).toFixed(2)}{' '}
+                          {invoice.currency.toUpperCase()}
+                        </td>
+                        <td className='py-1 px-1'>
+                          {(invoice.amount_paid / 100).toFixed(2)}{' '}
+                          {invoice.currency.toUpperCase()}
                         </td>
                         <td
                           className='py-1 px-1 font-semibold max-w-10 truncate whitespace-nowrap overflow-hidden'
-                          title={invoice.customerEmail}
+                          title={invoice.customer_email}
                         >
-                          {invoice.customerEmail}
+                          {invoice.customer_email}
                         </td>
                         <td className='py-1 px-1'>
                           {new Intl.DateTimeFormat('en-US', {
-                            year: '2-digit',
+                            year: 'numeric',
                             month: '2-digit',
                             day: '2-digit',
-                          }).format(new Date(invoice.date))}
+                          }).format(new Date(invoice.created * 1000))}
+                        </td>
+                        <td className='py-1 px-1'>
+                          {new Intl.DateTimeFormat('en-US', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                          }).format(new Date(invoice.due_date * 1000))}
                         </td>
 
                         <td>{invoice.status}</td>
@@ -332,7 +348,8 @@ const AdminInvoicesPage2 = () => {
                               <div className='py-1 px-1 sm:px-6 bg-slate-900 rounded-lg m-2 overflow-y-auto'>
                                 <div className='border-gray-600 mb-4'>
                                   <div className='flex justify-between text-lg font-semibold text-gray-200'>
-                                    <span>{invoice.customerEmail}</span>
+                                    <span>{invoice.customer_email}</span>
+                                    <span>{invoice.number}</span>
                                   </div>
                                 </div>
                                 <div className='mb-4'>
@@ -340,14 +357,17 @@ const AdminInvoicesPage2 = () => {
                                     Invoice Details
                                   </p>
                                   <div className='border-t border-gray-600'>
-                                    {invoice.lineItems.map((item, i) => (
+                                    {invoice.lines.data.map((item, i) => (
                                       <div
                                         key={i}
                                         className='flex justify-between py-2 text-gray-400'
                                       >
                                         <span>{item.description}</span>
                                         <span className='font-medium'>
-                                          ${Number(item.amount).toFixed(2)}
+                                          {(
+                                            item.price.unit_amount / 100
+                                          ).toFixed(2)}{' '}
+                                          {invoice.currency.toUpperCase()}
                                         </span>
                                       </div>
                                     ))}
@@ -357,8 +377,8 @@ const AdminInvoicesPage2 = () => {
                                   <div className='flex justify-between text-lg font-semibold text-gray-200'>
                                     <span>Total</span>
                                     <span>
-                                      $
-                                      {Number(invoice.invoiceAmount).toFixed(2)}
+                                      {(invoice.amount_due / 100).toFixed(2)}{' '}
+                                      {invoice.currency.toUpperCase()}
                                     </span>
                                   </div>
                                 </div>
@@ -409,7 +429,8 @@ const AdminInvoicesPage2 = () => {
               Customer Email: <strong>{voidInvoice.customerEmail}</strong>
             </p>
             <p className='mb-4'>
-              Amount: <strong>${Number(voidInvoice.amount).toFixed(2)}</strong>
+              Amount:{' '}
+              <strong>${Number(voidInvoice.invoiceAmount).toFixed(2)}</strong>
             </p>
             <p>Are you sure you want to void this invoice?</p>
             <div className='flex justify-end mt-4'>

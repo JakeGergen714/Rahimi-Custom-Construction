@@ -48,12 +48,7 @@ export async function POST(req) {
       customerEmail,
       date,
       lineItems, // List of line items
-      hoursWorked,
-      ratePerHour,
-      materialCost,
     } = body;
-
-    console.log('##############', body);
 
     // Step 1: Check if the customer already exists in Stripe
     let stripeCustomer;
@@ -74,12 +69,6 @@ export async function POST(req) {
 
     const stripeCustomerId = stripeCustomer.id;
 
-    // Generate a unique ID for the new invoice
-    const id = uuidv4();
-    const status = 'Unpaid'; // Initially unpaid
-
-    console.log(date);
-
     const invoiceDate = new Date().toISOString();
 
     // Step 2: Create the Invoice in Stripe
@@ -87,10 +76,6 @@ export async function POST(req) {
       customer: stripeCustomerId, // The Stripe customer ID
       collection_method: 'send_invoice', // The invoice will be emailed to the customer
       days_until_due: 30, // Invoice due in 30 days
-      metadata: {
-        invoiceId: id, // Store the internal invoice ID in metadata for reference
-        invoiceDate: invoiceDate,
-      },
     });
 
     var invoiceAmount = 0;
@@ -112,29 +97,10 @@ export async function POST(req) {
     await stripe.invoices.finalizeInvoice(stripeInvoice.id);
     await stripe.invoices.sendInvoice(stripeInvoice.id);
 
-    // Step 5: Store the invoice data in DynamoDB
-    const params = {
-      TableName: 'rahimi-invoices', // Replace with your DynamoDB table name
-      Item: {
-        id, // Unique identifier for the invoice
-        customerEmail,
-        date: invoiceDate, // Store the date as a string
-        status, // Initially unpaid
-        lineItems,
-        invoiceAmount,
-        stripeInvoiceId: stripeInvoice.id, // Store the Stripe Invoice ID
-        stripeCustomerId, // Store the Stripe Customer ID for future reference
-      },
-    };
-
-    // Insert the new invoice into DynamoDB
-    await dynamoDb.put(params).promise();
-
     return new Response(
       JSON.stringify({
         success: true,
         message: 'Invoice created and sent via Stripe',
-        invoice: params.Item,
       }),
       { status: 200 }
     );

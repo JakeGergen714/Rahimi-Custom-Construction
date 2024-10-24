@@ -57,7 +57,7 @@ body {
 }
 
 .service-icon {
-  @apply w-48 h-48 rounded-full bg-neutral-300 flex justify-center items-center;
+  @apply w-48 h-48 rounded-full bg-stone-400 bg-opacity-70 flex justify-center items-center;
   border: 3px solid black;
 }
 

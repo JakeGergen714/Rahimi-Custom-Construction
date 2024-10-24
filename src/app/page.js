@@ -132,7 +132,7 @@ export default function Home() {
               </p>
             </div>
             {/* Service Icons Section */}
-            <div className='relative z-10 flex flex-col md:flex-row justify-center items-stretch gap-6 md:gap-8'>
+            <div className='relative z-10 flex flex-col md:flex-row justify-center items-stretch gap-6 md:gap-6'>
               <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
                 <div className='service-icon'>
                   <Image
@@ -196,7 +196,7 @@ export default function Home() {
             {/* What We Do Section */}
             <div className='text-center text-white max-w-3xl mx-auto mb-8 px-4 pb-8'>
               <h2 className='text-4xl font-bold mb-4'>
-                Custom Home Enhancements & Renovations in Knoxville, TN
+                Expert Woodworking Services
               </h2>
               <p className='text-lg leading-relaxed'>
                 Rahimi Custom Construction offers a range of custom solutions to
@@ -207,9 +207,6 @@ export default function Home() {
             </div>
             {/* Section 1 - Indoor Enhancements */}
             <div className='text-center text-white mb-8  pt-16'>
-              <h3 className='text-2xl font-bold mb-4'>
-                Custom Home Renovations
-              </h3>
               <div className='flex flex-col md:flex-row flex-wrap justify-center items-stretch gap-6 md:gap-8'>
                 <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
                   <div className='service-icon'>
@@ -271,9 +268,6 @@ export default function Home() {
             </div>
             {/* Section 2 - Outdoor Living */}
             <div className='text-center text-white mb-8  pt-16'>
-              <h3 className='text-3xl font-bold mb-4'>
-                Custom Outdoor Living Spaces
-              </h3>
               <div className='flex flex-col md:flex-row justify-center items-stretch gap-6 md:gap-8'>
                 <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
                   <div className='service-icon'>
@@ -333,9 +327,6 @@ export default function Home() {
             </div>
             {/* Section 3 - Exterior Structures & Details */}
             <div className='text-center text-white mb-8 pt-16'>
-              <h3 className='text-3xl font-bold mb-4'>
-                Exterior Structures & Details
-              </h3>
               <div className='flex flex-col md:flex-row justify-center items-stretch gap-6 md:gap-8'>
                 <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
                   <div className='service-icon'>
