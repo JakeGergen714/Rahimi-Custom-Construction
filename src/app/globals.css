@@ -40,6 +40,13 @@ body {
   background-size: cover;
 }
 
+@media only screen and (max-width: 768px) {
+  .background-image {
+    background-size: contain; /* Ensure image fits within element */
+    background-position: center;
+  }
+}
+
 .title-container {
   @apply text-center pb-64 tracking-tighter;
 }
