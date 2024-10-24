@@ -240,30 +240,7 @@ export default function Home() {
                     beauty and functionality.
                   </div>
                 </div>
-
-                <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
-                  <div className='service-icon'>
-                    <Image
-                      src='/icons/crowning-molding-baseboards.png'
-                      width={128} // Adjust size as needed
-                      height={128} // Adjust size as needed
-                      className='object-contain w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 max-w-full'
-                      alt='Custom crown molding and baseboards for Knoxville homes'
-                    />
-                  </div>
-                  <div className='service-main mt-2'>
-                    Baseboards & Crown Molding
-                  </div>
-                  <div className='service-sub text-center'>
-                    Add a touch of elegance with expertly crafted baseboards and
-                    crown moldings that complement any room.
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Section 2 - Outdoor Living */}
-            <div className='text-center text-white mb-8  pt-16'>
-              <div className='flex flex-col md:flex-row justify-center items-stretch gap-6 md:gap-8'>
+                {/* Section 2 - Outdoor Living */}
                 <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
                   <div className='service-icon'>
                     <Image
@@ -297,65 +274,6 @@ export default function Home() {
                   <div className='service-sub text-center'>
                     Expand your living space with a custom-built outdoor deck,
                     porch, or balcony, designed to suit your needs.
-                  </div>
-                </div>
-
-                <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
-                  <div className='service-icon'>
-                    <Image
-                      src='/icons/dog-house.png'
-                      width={128} // Adjust to your required size
-                      height={128} // Adjust to your required size
-                      className='object-contain w-24 h-24 md:w-32 md:h-32'
-                      alt='Custom outdoor animal enclosures for Knoxville homes'
-                    />
-                  </div>
-                  <div className='service-main mt-2'>
-                    Outdoor Animal Enclosure
-                  </div>
-                  <div className='service-sub text-center'>
-                    Safe and comfortable outdoor spaces for your pets, designed
-                    with their comfort and your convenience in mind.
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Section 3 - Exterior Structures & Details */}
-            <div className='text-center text-white mb-8 pt-16'>
-              <div className='flex flex-col md:flex-row justify-center items-stretch gap-6 md:gap-8'>
-                <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
-                  <div className='service-icon'>
-                    <Image
-                      src='/icons/garage.png'
-                      width={128} // Adjust as needed
-                      height={128} // Adjust as needed
-                      className='object-contain w-24 h-24 md:w-32 md:h-32'
-                      alt='Custom garage, carport, and shed designs for Knoxville homes'
-                    />
-                  </div>
-                  <div className='service-main mt-2'>
-                    Garage, Carport, or Shed
-                  </div>
-                  <div className='service-sub text-center'>
-                    Functional and stylish storage solutions for vehicles,
-                    tools, and more.
-                  </div>
-                </div>
-
-                <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
-                  <div className='service-icon'>
-                    <Image
-                      src='/icons/soffits.png'
-                      width={128} // Adjust as needed
-                      height={128} // Adjust as needed
-                      className='object-contain w-24 h-24 md:w-32 md:h-32'
-                      alt='Custom soffit and fascia installations for Knoxville homes'
-                    />
-                  </div>
-                  <div className='service-main mt-2'>Soffit & Fascia</div>
-                  <div className='service-sub text-center'>
-                    Enhance the exterior of your home with durable and stylish
-                    soffits and fascia that provide protection and curb appeal.
                   </div>
                 </div>
               </div>

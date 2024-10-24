@@ -35,11 +35,11 @@ body {
 
 .services-container-with-overlay {
   @apply relative bg-fixed bg-cover bg-center p-6 md:p-16;
-  background-image: url('/12.jpg');
+  background-image: url('/Kitchen-Cabinets-1.webp');
 }
 .detailed-services-container-with-overlay {
   @apply relative bg-fixed bg-cover bg-center p-6 md:p-16;
-  background-image: url('/10.jpg');
+  background-image: url('/American-Wood-Cabinets-showroom-2-scaled.jpg');
 }
 
 .gallery-container {
