@@ -3,9 +3,6 @@ import React, { useState, useEffect } from 'react';
 const InsertInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
   const [invoice, setInvoice] = useState({
     customerEmail: '',
-    hoursWorked: '',
-    ratePerHour: '',
-    materialCost: '',
     lineItems: [], // Additional optional line items
   });
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
@@ -42,7 +39,7 @@ const InsertInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
   const handleLineItemChange = (index, e) => {
     const { name, value } = e.target;
 
-    const formattedValue =
+    var formattedValue =
       name === 'description'
         ? capitalizeTitle(value)
         : value.replace(/^0+(\d)/, '$1'); // Remove leading zeros for numeric inputs
@@ -52,6 +49,7 @@ const InsertInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
       if (!/^\d*\.?\d{0,2}$/.test(formattedValue)) {
         return; // Prevent invalid input from being set
       }
+      formattedValue = parseFloat(formattedValue) || 0;
     }
 
     const updatedLineItems = invoice.lineItems.map((item, i) =>
@@ -73,7 +71,7 @@ const InsertInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
   const addLineItem = () => {
     setInvoice({
       ...invoice,
-      lineItems: [...invoice.lineItems, { description: '', amount: '' }],
+      lineItems: [...invoice.lineItems, { description: '', amount: 0 }],
     });
   };
 

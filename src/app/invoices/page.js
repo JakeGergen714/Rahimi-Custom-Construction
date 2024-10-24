@@ -71,93 +71,90 @@ const AdminInvoicesPage2 = () => {
     }));
   };
 
-  const fetchAdminInvoices = useCallback(
-    async (isNextPage = false) => {
-      try {
-        const params = new URLSearchParams();
+  const fetchAdminInvoices = async (isNextPage = false) => {
+    try {
+      const params = new URLSearchParams();
 
-        if (filters.paid) params.append('status', 'Paid');
-        if (filters.unpaid) params.append('status', 'Unpaid');
-        if (filters.date) {
-          params.append('startDate', filters.date.startDate.toISOString());
-          params.append('endDate', filters.date.endDate.toISOString());
-        }
-
-        if (isNextPage && lastEvaluatedKey) {
-          params.append(
-            'lastKey',
-            encodeURIComponent(JSON.stringify(lastEvaluatedKey))
-          );
-        }
-
-        const url = `/api/admin-invoice-fetch?${params.toString()}`;
-        if (isNextPage) setIsLoadingMore(true);
-        else setLoading(true);
-
-        const response = await fetch(url, { method: 'GET' });
-
-        if (response.status === 401) {
-          window.location.href = 'login';
-          return;
-        }
-
-        const data = await response.json();
-
-        if (data.success && data.data) {
-          if (isNextPage) {
-            setInvoices((prevInvoices) => {
-              const combinedInvoices = [...prevInvoices, ...data.data];
-
-              const uniqueInvoices = combinedInvoices.filter(
-                (invoice, index, self) =>
-                  index === self.findIndex((i) => i.id === invoice.id)
-              );
-
-              return uniqueInvoices;
-            });
-          } else {
-            setInvoices(data.data);
-          }
-
-          setLastEvaluatedKey(data.lastEvaluatedKey || null);
-        }
-      } catch (error) {
-        console.error('Failed to fetch invoices:', error);
-      } finally {
-        setLoading(false);
-        setIsLoadingMore(false);
+      // Add filters if they exist
+      if (filters.paid) params.append('status', 'Paid');
+      if (filters.unpaid) params.append('status', 'Unpaid');
+      if (filters.date) {
+        params.append('startDate', filters.date.startDate.toISOString());
+        params.append('endDate', filters.date.endDate.toISOString());
       }
-    },
-    [filters] // Add dependencies here
-  );
+
+      // If paginating, pass the last key
+      if (isNextPage && lastEvaluatedKey) {
+        params.append(
+          'lastKey',
+          encodeURIComponent(JSON.stringify(lastEvaluatedKey))
+        );
+      }
+
+      const url = `/api/admin-invoice-fetch?${params.toString()}`;
+      if (isNextPage) setIsLoadingMore(true);
+      else setLoading(true);
+
+      const response = await fetch(url, { method: 'GET' });
+
+      if (response.status === 401) {
+        window.location.href = 'login';
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        if (isNextPage) {
+          setInvoices((prevInvoices) => {
+            const combinedInvoices = [...prevInvoices, ...data.data];
+
+            // Remove duplicates
+            const uniqueInvoices = combinedInvoices.filter(
+              (invoice, index, self) =>
+                index === self.findIndex((i) => i.id === invoice.id)
+            );
+
+            return uniqueInvoices;
+          });
+        } else {
+          setInvoices(data.data); // Reset with the new filtered data
+        }
+
+        // Set the next key for pagination
+        setLastEvaluatedKey(data.lastEvaluatedKey || null);
+      }
+    } catch (error) {
+      console.error('Failed to fetch invoices:', error);
+    } finally {
+      setLoading(false);
+      setIsLoadingMore(false); // End "Load More" loading state
+    }
+  };
 
   useEffect(() => {
     fetchAdminInvoices();
-  }, [fetchAdminInvoices]);
+  }, [filters]);
 
   const handleCreateInvoice = async (newInvoice) => {
-    console.log('hello');
-    for (var i = 0; i < 100; i++) {
-      console.log('test');
-      try {
-        const response = await fetch('/api/admin-invoice-add', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(newInvoice),
-        });
+    try {
+      const response = await fetch('/api/admin-invoice-add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newInvoice),
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to create invoice');
-        }
-
-        const data = await response.json();
-        setInvoices((prevInvoices) => [data.invoice, ...prevInvoices]);
-        setIsModalOpen(false);
-      } catch (error) {
-        console.error('Error creating invoice:', error);
+      if (!response.ok) {
+        throw new Error('Failed to create invoice');
       }
+
+      const data = await response.json();
+      setInvoices((prevInvoices) => [data.invoice, ...prevInvoices]);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error creating invoice:', error);
     }
   };
 
@@ -298,7 +295,7 @@ const AdminInvoicesPage2 = () => {
                         </td>
                         <td className='py-1 px-1'>
                           <div className='flex'>
-                            ${Number(invoice.amount).toFixed(2)}
+                            ${Number(invoice.invoiceAmount).toFixed(2)}
                           </div>
                         </td>
                         <td
@@ -360,7 +357,8 @@ const AdminInvoicesPage2 = () => {
                                   <div className='flex justify-between text-lg font-semibold text-gray-200'>
                                     <span>Total</span>
                                     <span>
-                                      ${Number(invoice.amount).toFixed(2)}
+                                      $
+                                      {Number(invoice.invoiceAmount).toFixed(2)}
                                     </span>
                                   </div>
                                 </div>

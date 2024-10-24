@@ -58,7 +58,6 @@ export async function GET(req) {
     // Base query parameters
     const params = {
       TableName: 'rahimi-invoices',
-      Limit: 10,
       ...(parsedLastKey && { ExclusiveStartKey: parsedLastKey }),
     };
 

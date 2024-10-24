@@ -53,6 +53,8 @@ export async function POST(req) {
       materialCost,
     } = body;
 
+    console.log('##############', body);
+
     // Step 1: Check if the customer already exists in Stripe
     let stripeCustomer;
     const existingCustomers = await stripe.customers.list({
@@ -91,32 +93,11 @@ export async function POST(req) {
       },
     });
 
-    // Step 3: Create the Invoice Items and attach them to the invoice
-    if (hoursWorked && ratePerHour && hoursWorked > 0 && ratePerHour > 0) {
-      await stripe.invoiceItems.create({
-        customer: stripeCustomerId,
-        amount: Math.round(hoursWorked * ratePerHour * 100), // Amount in cents
-        currency: 'usd',
-        description: `Labor: ${hoursWorked} hours @ $${ratePerHour}/hr`,
-        invoice: stripeInvoice.id, // Associate with the created invoice
-      });
-    }
-
-    if (materialCost && materialCost > 0) {
-      await stripe.invoiceItems.create({
-        customer: stripeCustomerId,
-        amount: Math.round(materialCost * 100), // Amount in cents
-        currency: 'usd',
-        description: 'Material Costs',
-        invoice: stripeInvoice.id, // Associate with the created invoice
-      });
-    }
-
-    var amount = 0;
+    var invoiceAmount = 0;
     // Add other line items (if any)
     for (const item of lineItems) {
       if (item.amount > 0) {
-        amount += item.amount;
+        invoiceAmount += item.amount;
         await stripe.invoiceItems.create({
           customer: stripeCustomerId,
           amount: Math.round(item.amount * 100), // Amount in cents
@@ -140,10 +121,7 @@ export async function POST(req) {
         date: invoiceDate, // Store the date as a string
         status, // Initially unpaid
         lineItems,
-        amount,
-        hoursWorked,
-        ratePerHour,
-        materialCost,
+        invoiceAmount,
         stripeInvoiceId: stripeInvoice.id, // Store the Stripe Invoice ID
         stripeCustomerId, // Store the Stripe Customer ID for future reference
       },
