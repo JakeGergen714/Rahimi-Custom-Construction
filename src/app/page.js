@@ -187,10 +187,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div
-          className='relative services-container-with-overlay bg-fixed bg-cover bg-center p-6 md:p-16'
-          style={{ backgroundImage: "url('/9.webp')" }}
-        >
+        <div className='services-container-with-overlay'>
           <div className='absolute inset-0 bg-slate-950 opacity-60'></div>
           <div className='relative z-10'>
             {/* What We Do Section */}
@@ -368,10 +365,7 @@ export default function Home() {
           </div>
         </div>
         {/* Gallery Section */}
-        <div
-          className='relative gallery-container bg-fixed bg-cover bg-center bg-white h-full overflow-hidden p-16 pb-16'
-          style={{ backgroundImage: "url('/background-3.png')" }}
-        >
+        <div className='gallery-container'>
           <div className='absolute inset-0 bg-stone-800 opacity-70'></div>
 
           <div className='grid-container relative z-10'>
@@ -442,10 +436,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div
-          className='relative gallery-container bg-fixed bg-cover bg-center bg-white h-full overflow-hidden p-16 md:p-32 flex justify-center items-center'
-          style={{ backgroundImage: "url('/11.jpg')" }}
-        >
+        <div className='contact-us-container'>
           <div className='absolute inset-0 bg-stone-800 opacity-70'></div>
 
           <div className='relative z-10 flex flex-col md:flex-row justify-between items-center w-full max-w-6xl'>

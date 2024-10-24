@@ -33,8 +33,41 @@ body {
   @apply absolute inset-0 bg-slate-800 opacity-35 z-0 w-screen h-screen;
 }
 
+.services-container-with-overlay {
+  @apply relative bg-fixed bg-cover bg-center p-6 md:p-16;
+  background-image: url('/9.webp');
+}
+
+.gallery-container {
+  @apply relative bg-fixed bg-cover bg-center bg-white h-full overflow-hidden p-16 pb-16;
+  background-image: url('/background-3.png');
+}
+
+.contact-us-container {
+  @apply relative bg-fixed bg-cover bg-center bg-white h-full overflow-hidden p-16 md:p-32 flex justify-center items-center;
+  background-image: "url('/11.jpg')";
+}
+
 @media only screen and (max-width: 768px) {
   .landing-page-container {
+    background-attachment: scroll !important; /* Override any fixed background attachments */
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .services-container-with-overlay {
+    background-attachment: scroll !important; /* Override any fixed background attachments */
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .gallery-containe {
+    background-attachment: scroll !important; /* Override any fixed background attachments */
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .contact-us-container {
     background-attachment: scroll !important; /* Override any fixed background attachments */
     background-position: center;
     background-repeat: no-repeat;
