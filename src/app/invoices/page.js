@@ -151,7 +151,7 @@ const AdminInvoicesPage2 = () => {
       }
 
       const data = await response.json();
-      setInvoices((prevInvoices) => [data.invoice, ...prevInvoices]);
+      fetchAdminInvoices();
       setIsModalOpen(false);
     } catch (error) {
       console.error('Error creating invoice:', error);
