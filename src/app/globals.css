@@ -70,7 +70,7 @@ body {
     background-repeat: no-repeat;
   }
 
-  .gallery-containe {
+  .gallery-container {
     background-attachment: scroll !important; /* Override any fixed background attachments */
     background-position: center;
     background-repeat: no-repeat;
