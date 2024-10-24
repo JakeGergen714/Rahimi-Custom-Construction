@@ -30,20 +30,12 @@ body {
   background-image: url('./assets/pexels-photo-6969864.jpeg');
 }
 .landing-page-overlay {
-  @apply absolute inset-0 bg-slate-800 opacity-35 z-0 w-screen h-screen
-  /* @apply absolute inset-0 bg-gray-800 opacity-50 z-0 w-screen h-screen*/
-     /* @apply absolute inset-0 bg-orange-900 opacity-30 z-0 w-screen h-screen */;
-}
-
-.background-image {
-  -webkit-background-size: cover;
-  background-size: cover;
+  @apply absolute inset-0 bg-slate-800 opacity-35 z-0 w-screen h-screen;
 }
 
 @media only screen and (max-width: 768px) {
   [style*='background'] {
     background-attachment: scroll !important; /* Override any fixed background attachments */
-    background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
   }
