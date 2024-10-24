@@ -35,6 +35,11 @@ body {
      /* @apply absolute inset-0 bg-orange-900 opacity-30 z-0 w-screen h-screen */;
 }
 
+.background-image {
+  -webkit-background-size: cover;
+  background-size: cover;
+}
+
 .title-container {
   @apply text-center pb-64 tracking-tighter;
 }
