@@ -363,7 +363,7 @@ export default function Home() {
                 <strong>Email:</strong> rahimillc123@gmail.com
               </p>
               <p className='mb-2  text-lg'>
-                <strong>Phone:</strong> +1-123-456-7890
+                <strong>Phone:</strong> +1-703-341-9507
               </p>
             </div>
 
