@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Invoice</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 40px;
+        color: #333;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Space between logo and text */
+      }
+
+      .logo {
+        width: 100px; /* Adjust the size as needed */
+        height: auto;
+      }
+
+      .company-name {
+        font-size: 16px;
+        font-weight: bold;
+        line-height: 1.2;
+      }
+
+      .header-right {
+        font-size: 16px;
+        text-align: right;
+        font-weight: bold;
+      }
+
+      .invoice-title {
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 20px;
+        text-decoration: underline;
+      }
+
+      .bill-to,
+      .info {
+        margin-top: 20px;
+        font-size: 12px;
+      }
+
+      .work-desc {
+        margin-top: 20px;
+        font-size: 12px;
+      }
+
+      .table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+      }
+
+      .table th,
+      .table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        font-size: 12px;
+        text-align: left;
+      }
+
+      .table th {
+        background-color: #f4f4f4;
+      }
+
+      .total-price {
+        text-align: right;
+        font-size: 14px;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      .footer {
+        margin-top: 40px;
+        font-size: 12px;
+        text-align: left;
+        line-height: 1.6;
+      }
+
+      .payment-section {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #333;
+      }
+
+      .payment-link {
+        display: inline-block;
+        margin-top: 2px;
+        background-color: #007bff;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Header Section -->
+    <div class="header">
+      <div class="header-left">
+        <img src="{{logoPath}}" alt="Company Logo" class="logo" />
+        <div class="company-name">
+          Rahimi<br />
+          Custom<br />
+          Construction<br />
+          LLC
+        </div>
+      </div>
+      <div class="header-right">
+        6026 Bayonet Ln, Knoxville, TN 37920<br />
+        +1 703-341-9507
+      </div>
+    </div>
+
+    <!-- Invoice Title -->
+    <div class="invoice-title">INVOICE</div>
+
+    <!-- Billing Information and Date -->
+    <div class="info">
+      <strong>Invoice #:</strong> {{invoiceNumber}}<br />
+      <strong>Date:</strong> {{invoiceDate}}<br />
+    </div>
+
+    <div class="bill-to">
+      <strong>BILL TO:</strong> {{customer_name}}<br />
+      {{customer_email}}
+    </div>
+
+    <div class="work-desc">
+      <strong>Work Description:</strong> {{description}}<br />
+    </div>
+
+    <!-- Line Items Table -->
+    <table class="table">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Description</th>
+          <th>QTY</th>
+          <th>Unit Price</th>
+          <th>Total Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each lines}}
+        <tr>
+          <td>{{@index}}</td>
+          <td>{{description}}</td>
+          <td>{{qty}}</td>
+          <td>${{price.unit_amount}}</td>
+          <td>${{total_price}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <!-- Total Amount -->
+    <div class="total-price">Total Price: ${{amount_due}}</div>
+
+    <!-- Payment Section -->
+    <div class="payment-section">
+      <p>
+        <strong>Pay Online:</strong> A 3.5% card processing fee will apply to
+        online payments.
+      </p>
+
+      <a href="{{invoiceLink}}" class="payment-link" target="_blank"
+        >Pay Online</a
+      >
+    </div>
+
+    <!-- Footer Section -->
+    <div class="footer">
+      The above invoice excludes Materials and just Labor cost.<br /><br />
+      Please let me know if you have any questions or concerns.<br /><br />
+      Sincerely,<br /><br />
+      Farzad Rahimi<br />
+      Rahimi Custom Construction LLC<br />
+      rahimillc123@gmail.com<br />
+      (703) 341-9507
+    </div>
+  </body>
+</html>

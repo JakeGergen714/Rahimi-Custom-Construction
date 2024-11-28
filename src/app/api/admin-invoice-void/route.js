@@ -38,13 +38,10 @@ export async function PUT(req) {
 
   try {
     const body = await req.json();
-    console.log('body');
-    console.log(body);
-    const {
-      stripeInvoiceId, // Stripe Invoice ID for voiding
-    } = body;
+    const invoiceId = body.id;
 
-    if (!stripeInvoiceId) {
+    if (!invoiceId) {
+      console.log('stripe invoice id not found');
       return NextResponse.json(
         { error: 'Missing Stripe invoice ID' },
         { status: 400 }
@@ -52,8 +49,7 @@ export async function PUT(req) {
     }
 
     // Void the invoice in Stripe
-    const voidedInvoice = await stripe.invoices.voidInvoice(stripeInvoiceId);
-    console.log(voidedInvoice);
+    const voidedInvoice = await stripe.invoices.voidInvoice(invoiceId);
 
     return new Response(
       JSON.stringify({

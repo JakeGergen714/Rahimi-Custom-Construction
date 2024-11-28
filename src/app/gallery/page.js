@@ -30,10 +30,6 @@ export default function GalleryPage() {
       alt: 'Custom Bookcase | Knoxville, TN',
     },
     {
-      src: '/slideshow/custom-shelf-knoxville.jpeg',
-      alt: 'Custom Shelf and Lighting | Knoxville, TN',
-    },
-    {
       src: '/slideshow/renovation.webp',
       alt: 'Custom Home Renovation | Knoxville, TN',
     },

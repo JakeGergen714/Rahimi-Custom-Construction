@@ -101,7 +101,7 @@ body {
   margin: 0 auto;
 }
 
-.grid img {
+.gallery-container img {
   @apply border-2 border-stone-700 text-white shadow-lg;
 }
 

@@ -12,7 +12,7 @@ const AdminInvoicesPage2 = () => {
   const [expandedRowIndex, setExpandedRowIndex] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false); // New state for Load More button
-  const [voidInvoice, setVoidInvoice] = useState(null);
+  const [editInvoice, setEditInvoice] = useState(null);
 
   const contentRef = useRef([]);
   const dateFilterRef = useRef(null);
@@ -108,7 +108,7 @@ const AdminInvoicesPage2 = () => {
         );
       }
 
-      const url = `/api/admin-invoice-fetch?${params.toString()}`;
+      const url = `/api/admin-proposal-fetch?${params.toString()}`;
       if (isNextPage) setIsLoadingMore(true);
       else setLoading(true);
 
@@ -154,32 +154,12 @@ const AdminInvoicesPage2 = () => {
   }, [filters]);
 
   const handleCreateInvoice = async (newInvoice) => {
-    if (newInvoice.useStripe) {
-      createStripeInvoice(newInvoice);
-    } else {
+    console.log(newInvoice);
+    if (!newInvoice.isProposal) {
       createPlainInvoice(newInvoice);
-    }
-  };
-
-  const createStripeInvoice = async (newInvoice) => {
-    try {
-      const response = await fetch('/api/admin-invoice-add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newInvoice),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create invoice');
-      }
-
-      const data = await response.json();
-      fetchAdminInvoices();
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error('Error creating invoice:', error);
+    } else {
+      console.log('Is proposal');
+      createPlainProposal(newInvoice);
     }
   };
 
@@ -202,17 +182,45 @@ const AdminInvoicesPage2 = () => {
         throw new Error('Failed to create plain invoice');
       }
 
-      fetchAdminInvoices();
+      fetchAdminInvoices(); // Assuming this refreshes your list of invoices
       setIsModalOpen(false); // Close the modal
     } catch (error) {
       console.error('Error creating invoice:', error);
     }
   };
 
-  const markInvoiceAsPaid = async (invoice) => {
+  const createPlainProposal = async (newInvoice) => {
+    console.log('generating pdf from: ', newInvoice);
     try {
       // Correct method type: POST, since you're sending a body
-      const paidInvoice = await fetch('/api/mark-invoice-as-paid', {
+      const invoicePdfResponse = await fetch(
+        '/api/generate-plain-proposal-pdf',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newInvoice), // This sends the invoice details to generate the PDF
+        }
+      );
+
+      if (!invoicePdfResponse.ok) {
+        throw new Error('Failed to create plain proposal');
+      }
+
+      fetchAdminInvoices(); // Assuming this refreshes your list of invoices
+      setIsModalOpen(false); // Close the modal
+    } catch (error) {
+      console.error('Error creating proposal:', error);
+    }
+  };
+
+  const handleVoidInvoice = async (invoice) => {
+    setVoidInvoice(null);
+
+    setExpandedRowIndex(null);
+    try {
+      const response = await fetch('/api/admin-invoice-void', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -220,9 +228,13 @@ const AdminInvoicesPage2 = () => {
         body: JSON.stringify(invoice),
       });
 
-      fetchAdminInvoices();
+      if (!response.ok) {
+        throw new Error('Failed to void invoice');
+      } else {
+        fetchAdminInvoices();
+      }
     } catch (error) {
-      console.error('Error marking invoice as paid:', error);
+      console.error('Error voiding invoice:', error);
     }
   };
 
@@ -249,7 +261,7 @@ const AdminInvoicesPage2 = () => {
         <ul>
           <li className='mb-6 pt-4'>
             <a
-              href='#invoices'
+              href='/invoices'
               className='text-white hover:text-blue-500 text-xl'
             >
               Invoices
@@ -273,56 +285,15 @@ const AdminInvoicesPage2 = () => {
 
           {/* Invoice Table */}
           <div className='bg-white p-4 shadow rounded-lg max-w-full flex flex-col flex-grow h-full min-h-0'>
-            <h2 className='text-2xl font-medium mb-4'>Invoices</h2>
+            <h2 className='text-2xl font-medium mb-4'>Proposals</h2>
 
             {/* Filters */}
             <div className='flex flex-wrap pt-4 border-b pb-2 gap-2 sm:gap-4'>
-              <div
-                className={`cursor-pointer rounded-full border-dashed border-2 px-2 text-slate-400 flex-grow sm:flex-grow-0 ${
-                  filters.date ? 'bg-gray-200' : ''
-                }`}
-                onClick={() => {
-                  if (filters.date) {
-                    // If a date filter is already applied, remove it (set to null)
-                    setFilters((prevFilters) => ({
-                      ...prevFilters,
-                      date: null,
-                    }));
-                  } else {
-                    // Otherwise, open the date filter
-                    setShowDateFilter(true);
-                  }
-                }}
-              >
-                Date and time
-              </div>
-              {showDateFilter ? (
-                <div className='absolute pt-8' ref={dateFilterRef}>
-                  <DateFilter onApply={applyDateFilter}></DateFilter>
-                </div>
-              ) : null}
-
-              <div
-                onClick={() => applyPaidFilter(!filters.paid)}
-                className={`cursor-pointer rounded-full border-dashed border-2 px-2 text-slate-400 flex-grow sm:flex-grow-0 ${
-                  filters.paid ? 'bg-gray-200' : ''
-                }`}
-              >
-                Paid
-              </div>
-              <div
-                onClick={() => applyUnpaidFilter(!filters.unpaid)}
-                className={`cursor-pointer rounded-full border-dashed border-2 px-2 text-slate-400 flex-grow sm:flex-grow-0 ${
-                  filters.unpaid ? 'bg-gray-200' : ''
-                }`}
-              >
-                Unpaid
-              </div>
               <button
                 onClick={() => setIsModalOpen(true)}
                 className='bg-blue-500 text-white rounded-lg px-2 py-1 sm:px-6 hover:bg-blue-600 transition-all ml-auto flex-grow sm:flex-grow-0'
               >
-                + Create New Invoice
+                + Create New Proposal
               </button>
             </div>
             {loading && (
@@ -352,10 +323,6 @@ const AdminInvoicesPage2 = () => {
                       <th className='py-1 px-1 text-gray-400 font-medium'>
                         Created Date
                       </th>
-
-                      <th className='py-1 px-1 text-gray-400 font-medium'>
-                        Status
-                      </th>
                     </tr>
                   </thead>
                   <tbody className='text-black divide-y-2 divide-gray-200'>
@@ -373,7 +340,7 @@ const AdminInvoicesPage2 = () => {
                             )}
                           </td>
                           <td className='py-1 px-1'>
-                            {'INV-' + String(invoice.id).padStart(6, '0')}{' '}
+                            {'PRO-' + String(invoice.id).padStart(6, '0')}{' '}
                           </td>
                           <td className='py-1 px-1'>
                             {invoice.amount_due.toFixed(2)}{' '}
@@ -386,13 +353,11 @@ const AdminInvoicesPage2 = () => {
                             {invoice.customer_email}
                           </td>
                           <td className='py-1 px-1'>{invoice.date}</td>
-
-                          <td>{invoice.status}</td>
                         </tr>
 
                         {expandedRowIndex === index && (
                           <tr className='expanded-content'>
-                            <td colSpan='6'>
+                            <td colSpan='5'>
                               <div
                                 ref={(el) => (contentRef.current[index] = el)}
                                 className='transition-all duration-500 ease-in-out overflow-hidden'
@@ -406,28 +371,14 @@ const AdminInvoicesPage2 = () => {
                               >
                                 <div className='py-1 px-1 sm:px-6 bg-slate-900 rounded-lg m-2 overflow-y-auto'>
                                   <div className='border-gray-600 mb-4'>
-                                    <div className='flex justify-between text-lg font-semibold text-gray-200 border-b border-gray-600 p-2'>
-                                      <div className='text-lg text-gray-200'>
-                                        <span className='font-semibold'>
-                                          Sent to -{' '}
-                                        </span>
-                                        <span className='font-normal'>
-                                          <span>{invoice.customer_email}</span>
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <div className='text-lg text-gray-200 border-b border-gray-600 p-2'>
-                                      <span className='font-semibold'>
-                                        Work Description -{' '}
-                                      </span>
-                                      <span className='font-normal'>
-                                        {invoice.description}
-                                      </span>
+                                    <div className='flex justify-between text-lg font-semibold text-gray-200'>
+                                      <span>{invoice.customer_email}</span>
+                                      <span>{invoice.number}</span>
                                     </div>
                                   </div>
                                   <div className='mb-4'>
                                     <p className='font-semibold text-lg text-gray-100 mb-2'>
-                                      Invoice Details
+                                      Proposal Details
                                     </p>
                                     <div className='flex justify-between py-2 text-gray-400 font-semibold'>
                                       <span className='flex-1 text-left'>
@@ -468,16 +419,16 @@ const AdminInvoicesPage2 = () => {
                                     </div>
                                   </div>
                                 </div>
-
-                                {invoice.status == 'open' && (
-                                  <button
-                                    onClick={() => markInvoiceAsPaid(invoice)}
-                                    className='bg-green-600 text-black rounded-lg px-2 py-1 sm:px-6 hover:bg-green-700 transition-all ml-auto flex-grow sm:flex-grow-0'
-                                  >
-                                    Mark As Paid
-                                  </button>
-                                )}
                               </div>
+                              <button
+                                onClick={() => {
+                                  setEditInvoice(invoice);
+                                  setIsModalOpen(true);
+                                }}
+                                className='bg-green-700 text-white rounded-lg mb-2 px-2 py-1 sm:px-6 hover:bg-green-800 transition-all ml-auto flex-grow sm:flex-grow-0'
+                              >
+                                Generate Invoice
+                              </button>
                             </td>
                           </tr>
                         )}
@@ -506,8 +457,12 @@ const AdminInvoicesPage2 = () => {
       {isModalOpen && (
         <InsertInvoiceModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditInvoice(null);
+          }}
           onSubmit={handleCreateInvoice}
+          editInvoice={editInvoice}
         />
       )}
     </div>

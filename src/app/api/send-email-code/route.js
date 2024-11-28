@@ -4,8 +4,6 @@ import { NextResponse } from 'next/server'; // Use NextResponse for handling ser
 const fs = require('fs');
 const path = require('path');
 
-console.log('__dirname:', __dirname);
-
 const templatePath = path.join(
   process.cwd(),
   'src/templates/emailTemplate.html'

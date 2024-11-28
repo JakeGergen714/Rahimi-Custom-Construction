@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-const InsertInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
+const InsertInvoiceModal = ({ isOpen, onClose, onSubmit, editInvoice }) => {
+  const [title, setTitle] = useState(null);
+
   const [invoice, setInvoice] = useState({
     customer_email: '',
     customer_name: '',
@@ -9,6 +11,46 @@ const InsertInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
     useStripe: false, // New field to track whether to use Stripe
     amount_due: 0,
   });
+
+  useEffect(() => {
+    if (editInvoice) {
+      const firstLaborLine = editInvoice.lines.find((line) =>
+        line.description.startsWith('Labor')
+      );
+
+      // Filter out the firstLaborLine
+      const filteredLines = editInvoice.lines.filter(
+        (line) => line !== firstLaborLine
+      );
+
+      const updatedInvoice = {
+        ...editInvoice,
+        lines: filteredLines, // Use the filtered lines array without firstLaborLine
+        hoursWorked: firstLaborLine
+          ? firstLaborLine.price.unit_amount
+          : undefined,
+        ratePerHour: firstLaborLine
+          ? firstLaborLine.price.unit_quantity
+          : undefined,
+        isProposal: false,
+      };
+
+      setInvoice(updatedInvoice);
+      setTitle('Convert Proposal To Invoice');
+    } else {
+      setInvoice({
+        customer_email: '',
+        customer_name: '',
+        description: '',
+        lines: [], // Additional optional line items
+        useStripe: false, // New field to track whether to use Stripe
+        amount_due: 0,
+        isProposal: true,
+      });
+      setTitle('Create New Proposal');
+    }
+  }, []);
+
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
 
   // Capitalize the first letter of each word and lowercase the rest
@@ -174,7 +216,7 @@ const InsertInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
         {/* Left side: Invoice form */}
         <div className='w-full sm:w-1/2 sm:pr-4 mb-6 sm:mb-0'>
           <h2 className='text-xl sm:text-2xl font-bold mb-4 text-black'>
-            Create New Invoice
+            {editInvoice ? 'Create New Invoice' : 'Create New Proposal'}
           </h2>
           <form onSubmit={handleSubmit}>
             {/* Customer Email */}
@@ -333,7 +375,7 @@ const InsertInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                 type='submit'
                 className='bg-blue-500 text-white rounded-lg px-4 py-2'
               >
-                Send Invoice
+                {editInvoice ? 'Send Invoice' : 'Send Proposal'}
               </button>
             </div>
           </form>
@@ -342,11 +384,13 @@ const InsertInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
         {/* Right side: Invoice preview */}
         <div className='w-full sm:w-1/2 sm:pl-4'>
           <h2 className='text-xl sm:text-2xl font-bold mb-4'>
-            Invoice Preview
+            {editInvoice ? 'Invoice Preview' : 'Proposal Preview'}
           </h2>
           <div className='p-4 bg-gray-800 text-white rounded-lg shadow-lg'>
             <div className='mb-4'>
-              <p className='font-semibold text-lg mb-2'>Invoice Details</p>
+              <p className='font-semibold text-lg mb-2'>
+                {editInvoice ? 'Invoice Details' : 'Proposal Details'}
+              </p>
               <div className='border-t border-gray-600'>
                 <p className='font-semibold text-lg mb-2'>
                   Work Description:{' '}
@@ -402,7 +446,11 @@ const InsertInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
             <p className='mb-4'>
               Customer Email: <strong>{invoice.customer_email}</strong>
             </p>
-            <p>Are you sure you want to submit this invoice?</p>
+            <p>
+              {editInvoice
+                ? 'Are you sure you want to submit this invoice?'
+                : 'Are you sure you want to submit this proposal?'}
+            </p>
             <div className='flex justify-end mt-4'>
               <button
                 className='bg-gray-400 text-white rounded-lg px-4 py-2 mr-2'

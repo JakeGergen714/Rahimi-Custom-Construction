@@ -68,9 +68,7 @@ export async function GET(req) {
     }
 
     // Add isProposal filter
-    filterExpressions.push(
-      '(attribute_not_exists(#isProposal) OR #isProposal <> :isProposalValue)'
-    );
+    filterExpressions.push('#isProposal = :isProposalValue');
     params.ExpressionAttributeNames['#isProposal'] = 'isProposal';
     params.ExpressionAttributeValues[':isProposalValue'] = true;
 
@@ -87,6 +85,7 @@ export async function GET(req) {
     // Query DynamoDB
     const result = await dynamoDb.query(params).promise();
     console.log(result);
+
     const lastEvaluatedKey = result.LastEvaluatedKey
       ? encodeURIComponent(JSON.stringify(result.LastEvaluatedKey))
       : null;

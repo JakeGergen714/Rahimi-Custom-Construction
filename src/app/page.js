@@ -201,8 +201,8 @@ export default function Home() {
               </p>
             </div>
             {/* Section 1 - Indoor Enhancements */}
-            <div className='text-center text-white mb-8  pt-16'>
-              <div className='flex flex-col md:flex-row flex-wrap justify-center items-stretch gap-6 md:gap-8'>
+            <div className='text-center text-white mb-8 pt-16'>
+              <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 justify-center items-stretch '>
                 <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
                   <div className='service-icon'>
                     <Image
@@ -240,7 +240,7 @@ export default function Home() {
                     beauty and functionality.
                   </div>
                 </div>
-                {/* Section 2 - Outdoor Living */}
+
                 <div className='flex flex-col items-center text-center max-w-xs mx-auto'>
                   <div className='service-icon'>
                     <Image
@@ -359,10 +359,10 @@ export default function Home() {
             {/* Left side - Email and Phone Number */}
             <div className='w-full md:w-1/2 text-white text-left mb-8 md:mb-0 md:pr-8'>
               <h2 className='text-2xl font-bold mb-4'>Get in Touch</h2>
-              <p className='mb-2'>
-                <strong>Email:</strong> info@rahimicustomconstruction.com
+              <p className='mb-2 text-lg'>
+                <strong>Email:</strong> rahimillc123@gmail.com
               </p>
-              <p className='mb-2'>
+              <p className='mb-2  text-lg'>
                 <strong>Phone:</strong> +1-123-456-7890
               </p>
             </div>
