@@ -29,6 +29,7 @@ export async function POST(req) {
   }
 
   if (email != adminEmail) {
+    console.log(adminEmail);
     return NextResponse.json(
       { error: 'Incorrect email address' },
       { status: 400 }

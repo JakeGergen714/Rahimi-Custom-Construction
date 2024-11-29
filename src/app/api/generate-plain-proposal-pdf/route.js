@@ -1,85 +1,82 @@
-import puppeteer from 'puppeteer';
+import * as pdf from 'html-pdf-node';
 import nodemailer from 'nodemailer';
-import fs from 'fs';
-import Handlebars from 'handlebars';
-const path = require('path');
 import AWS from 'aws-sdk';
+import fs from 'fs';
+import path from 'path';
+import Handlebars from 'handlebars';
 
-const templatePath = path.join(
-  process.cwd(),
-  'src/templates/proposalTemplate.html'
-);
-let template = fs.readFileSync(templatePath, 'utf8');
-const compiledTemplate = Handlebars.compile(template);
-const logoPath = path.resolve('public/logo.jpg');
-const logoBase64 = fs.readFileSync(logoPath, 'base64');
-
-const adminEmail = process.env.ADMIN_EMAIL;
-
+// AWS DynamoDB setup
 const dynamoDb = new AWS.DynamoDB.DocumentClient({
   region: 'us-east-2',
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
+// Compile Handlebars template
+const templatePath = path.join(
+  process.cwd(),
+  'src/templates/proposalTemplate.html'
+);
+const templateContent = fs.readFileSync(templatePath, 'utf8');
+const compiledTemplate = Handlebars.compile(templateContent);
+const logoPath = path.resolve('public/logo.jpg');
+const logoBase64 = fs.readFileSync(logoPath, 'base64');
+
 export async function POST(req) {
   const invoice = await req.json();
 
-  console.log(invoice);
-
+  // Generate a unique invoice ID
   const latestId = await getLatestInvoiceId();
-  console.log('fetched id', latestId);
   const id = latestId + 1;
-  console.log(id);
 
   const date = new Date().toLocaleDateString();
   const secretCode = Math.floor(100000 + Math.random() * 900000).toString();
-  // Create the DynamoDB entry
-  const params = {
-    TableName: 'rahimi-invoices',
-    Item: {
-      invoice_partition: 'invoices', // Static partition key value
-      id,
-      customer_email: invoice.customer_email,
-      customer_name: invoice.customer_name,
-      lines: invoice.lines,
-      amount_due: invoice.amount_due,
-      date: date,
-      secretCode: secretCode,
-      isProposal: true,
-      status: 'open',
-      description: invoice.description,
-    },
-  };
 
-  // Store the email and code in DynamoDB
-  await dynamoDb.put(params).promise();
+  // Save the invoice to DynamoDB
+  const invoiceNumber = `PRO-${String(id).padStart(6, '0')}`;
+  await dynamoDb
+    .put({
+      TableName: 'rahimi-invoices',
+      Item: {
+        invoice_partition: 'invoices',
+        id,
+        customer_email: invoice.customer_email,
+        customer_name: invoice.customer_name,
+        lines: invoice.lines,
+        amount_due: invoice.amount_due,
+        date,
+        secretCode,
+        isProposal: true,
+        status: 'open',
+        description: invoice.description,
+      },
+    })
+    .promise();
 
-  // Load the HTML template
-  const paddedId = String(id).padStart(6, '0'); // Adjust the '6' to your desired total length
-  const invoiceNumber = 'PRO-' + paddedId;
-
+  // Render the Handlebars template
   const html = compiledTemplate({
     ...invoice,
-    invoiceNumber: invoiceNumber,
-    invoiceDate: new Date().toLocaleDateString(),
-    lines: invoice.lines.map((line, index) => ({
+    invoiceNumber,
+    invoiceDate: date,
+    customerName: invoice.customer_name,
+    customerEmail: invoice.customer_email,
+    lines: invoice.lines.map((line) => ({
       ...line,
+      description:
+        line.description === 'Labor'
+          ? `${line.description} - ${invoice.description}`
+          : line.description,
       qty: invoice.hoursWorked,
       total_price: (line.price.unit_amount * invoice.hoursWorked).toFixed(2),
     })),
     logoPath: `data:image/jpeg;base64,${logoBase64}`,
-    description: invoice.description,
+    totalAmount: invoice.amount_due.toFixed(2),
   });
 
-  // Launch Puppeteer to render the HTML and generate PDF
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: 'networkidle0' });
-  const pdfBuffer = await page.pdf({ format: 'A4' });
-  await browser.close();
+  // Generate PDF from HTML
+  const pdfBuffer = await generatePDF(html);
 
-  // Set up Nodemailer to send the PDF
+  // Send email with the generated PDF
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
@@ -93,7 +90,7 @@ export async function POST(req) {
   const mailOptions = {
     from: process.env.ADMIN_EMAIL,
     to: invoice.customer_email,
-    bcc: adminEmail,
+    bcc: process.env.ADMIN_EMAIL,
     subject: `Proposal for ${invoice.customer_name}`,
     text: `Dear ${invoice.customer_name},\n\nPlease find attached your proposal.\n\nBest regards,\nRahimi Custom Construction LLC`,
     attachments: [
@@ -110,7 +107,7 @@ export async function POST(req) {
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Proposal created and sent via Email',
+        message: 'Proposal created and sent via email',
       }),
       { status: 200 }
     );
@@ -126,21 +123,25 @@ export async function POST(req) {
   }
 }
 
+// Generate PDF from HTML
+const generatePDF = async (html) => {
+  const options = { format: 'A4' }; // PDF page format
+  const file = { content: html }; // Pass the HTML content
+  const pdfBuffer = await pdf.generatePdf(file, options);
+  return pdfBuffer;
+};
+
+// Fetch the latest invoice ID from DynamoDB
 const getLatestInvoiceId = async () => {
   const params = {
     TableName: 'rahimi-invoices',
-    // Limit to 1 item to get only the latest
     Limit: 1,
-    ScanIndexForward: false, // Sorts in descending order to get the highest id
+    ScanIndexForward: false,
     KeyConditionExpression: '#partitionKey = :partitionValue',
-    ExpressionAttributeNames: {
-      '#partitionKey': 'invoice_partition', // Use 'invoice_partition' as the partition key name
-    },
-    ExpressionAttributeValues: {
-      ':partitionValue': 'invoices', // Static value for 'invoice_partition' when inserting records
-    },
+    ExpressionAttributeNames: { '#partitionKey': 'invoice_partition' },
+    ExpressionAttributeValues: { ':partitionValue': 'invoices' },
   };
 
   const result = await dynamoDb.query(params).promise();
-  return result.Items.length > 0 ? result.Items[0].id : 0; // Return the latest invoice ID or 0 if no items exist
+  return result.Items.length > 0 ? result.Items[0].id : 0;
 };

@@ -33,9 +33,7 @@ export async function GET(req) {
     }
 
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get('status') || null;
-    const startDate = searchParams.get('startDate') || null;
-    const endDate = searchParams.get('endDate') || null;
+    const year = searchParams.get('year') || null;
     const lastKey = searchParams.get('lastKey');
 
     // Set up base DynamoDB query parameters
@@ -54,17 +52,12 @@ export async function GET(req) {
 
     // Initialize filter expression parts
     let filterExpressions = [];
-    if (status) {
-      filterExpressions.push('#status = :statusValue');
-      params.ExpressionAttributeNames['#status'] = 'status';
-      params.ExpressionAttributeValues[':statusValue'] = status;
-    }
 
-    if (startDate && endDate) {
-      filterExpressions.push('#due_date BETWEEN :startDate AND :endDate');
-      params.ExpressionAttributeNames['#due_date'] = 'due_date';
-      params.ExpressionAttributeValues[':startDate'] = startDate;
-      params.ExpressionAttributeValues[':endDate'] = endDate;
+    if (year) {
+      // Add year filter
+      filterExpressions.push('#yearAttr = :yearValue');
+      params.ExpressionAttributeNames['#yearAttr'] = 'year';
+      params.ExpressionAttributeValues[':yearValue'] = year;
     }
 
     // Add isProposal filter

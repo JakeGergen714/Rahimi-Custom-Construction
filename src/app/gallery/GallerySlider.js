@@ -56,9 +56,6 @@ export default function GallerySlider({ images }) {
                   objectFit='contain'
                   alt={curImage.alt}
                 />
-                <div className='absolute bottom-0 w-full bg-black bg-opacity-70 text-white text-center py-3'>
-                  <p className='text-lg'>{curImage.alt}</p>
-                </div>
               </div>
             </div>
           ))}

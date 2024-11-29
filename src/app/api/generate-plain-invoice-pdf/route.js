@@ -1,171 +1,139 @@
-import puppeteer from 'puppeteer';
+import * as pdf from 'html-pdf-node';
 import nodemailer from 'nodemailer';
-import fs from 'fs';
-import Handlebars from 'handlebars';
-import path from 'path';
 import AWS from 'aws-sdk';
+import fs from 'fs';
+import path from 'path';
+import Handlebars from 'handlebars';
 
-const templatePath = path.join(
-  process.cwd(),
-  'src/templates/invoiceTemplate.html'
-);
-let template = fs.readFileSync(templatePath, 'utf8');
-const compiledTemplate = Handlebars.compile(template);
-const logoPath = path.resolve('public/logo.jpg');
-const logoBase64 = fs.readFileSync(logoPath, 'base64');
-
-const adminEmail = process.env.ADMIN_EMAIL;
-
+// AWS DynamoDB setup
 const dynamoDb = new AWS.DynamoDB.DocumentClient({
   region: 'us-east-2',
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
+// Compile Handlebars template
+const templatePath = path.join(
+  process.cwd(),
+  'src/templates/invoiceTemplate.html'
+);
+const templateContent = fs.readFileSync(templatePath, 'utf8');
+const compiledTemplate = Handlebars.compile(templateContent);
+const logoPath = path.resolve('public/logo.jpg');
+const logoBase64 = fs.readFileSync(logoPath, 'base64');
+
 export async function POST(req) {
   const invoice = await req.json();
-  const isNewInvoice = !invoice.id;
+
+  // Generate a unique invoice ID
+  const latestId = await getLatestInvoiceId();
+  const id = latestId + 1;
+
   const date = new Date().toLocaleDateString();
   const secretCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // Determine ID for new invoice
-  if (isNewInvoice) {
-    console.log('Creating a new invoice.');
-    const latestId = await getLatestInvoiceId();
-    invoice.id = latestId + 1;
-  } else {
-    console.log(`Converting proposal to invoice with ID ${invoice.id}`);
-  }
+  // Save the invoice to DynamoDB
+  const invoiceNumber = `PRO-${String(id).padStart(6, '0')}`;
+  await dynamoDb
+    .put({
+      TableName: 'rahimi-invoices',
+      Item: {
+        invoice_partition: 'invoices',
+        id,
+        customer_email: invoice.customer_email,
+        customer_name: invoice.customer_name,
+        lines: invoice.lines,
+        amount_due: invoice.amount_due,
+        date,
+        secretCode,
+        isProposal: false,
+        status: 'open',
+        description: invoice.description,
+      },
+    })
+    .promise();
 
-  // Prepare DynamoDB parameters for update
-  const params = {
-    TableName: 'rahimi-invoices',
-    Key: { invoice_partition: 'invoices', id: invoice.id },
-    UpdateExpression: `SET customer_email = :email, customer_name = :name, description = :description,
-                     #linesAttr = :lines, amount_due = :amount_due, #dateAttr = :date, 
-                     secretCode = :code, #statusAttr = :status, isProposal = :proposal`,
-    ExpressionAttributeNames: {
-      '#linesAttr': 'lines', // Alias for 'lines'
-      '#dateAttr': 'date', // Alias for 'date'
-      '#statusAttr': 'status', // Alias for 'status'
+  const hostUrl = `${
+    req.headers.get('x-forwarded-proto') || 'http'
+  }://${req.headers.get('host')}`;
+  const invoiceLink = `${hostUrl}/api/generate-payment-link?id=${invoice.id}&secretCode=${secretCode}`;
+
+  const html = compiledTemplate({
+    ...invoice,
+    invoiceNumber: invoiceNumber,
+    invoiceDate: date,
+    lines: invoice.lines.map((line) => ({
+      ...line,
+      description:
+        line.description === 'Labor'
+          ? `${line.description} - ${invoice.description}`
+          : line.description,
+      qty: invoice.hoursWorked,
+      total_price: (line.price.unit_amount * invoice.hoursWorked).toFixed(2),
+    })),
+    logoPath: `data:image/jpeg;base64,${logoBase64}`,
+    invoiceLink: invoiceLink,
+  });
+
+  // Generate PDF from HTML
+  const pdfBuffer = await generatePDF(html);
+
+  // Send email with the generated PDF
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.GOOGLE_PASS,
     },
-    ExpressionAttributeValues: {
-      ':email': invoice.customer_email,
-      ':name': invoice.customer_name,
-      ':lines': invoice.lines,
-      ':amount_due': invoice.amount_due,
-      ':description': invoice.description,
-      ':date': date,
-      ':code': secretCode,
-      ':status': 'open',
-      ':proposal': false,
-    },
-    ConditionExpression: isNewInvoice ? 'attribute_not_exists(id)' : undefined,
+  });
+
+  const mailOptions = {
+    from: process.env.ADMIN_EMAIL,
+    to: invoice.customer_email,
+    bcc: process.env.ADMIN_EMAIL,
+    subject: `Invoice for ${invoice.customer_name}`,
+    text: `Dear ${invoice.customer_name},\n\nPlease find attached your invoice.\n\nBest regards,\nRahimi Custom Construction LLC`,
+    attachments: [
+      {
+        filename: 'invoice.pdf',
+        content: pdfBuffer,
+        contentType: 'application/pdf',
+      },
+    ],
   };
 
   try {
-    // Insert new invoice or update existing proposal
-    if (isNewInvoice) {
-      await dynamoDb
-        .put({
-          TableName: params.TableName,
-          Item: {
-            invoice_partition: 'invoices',
-            id: invoice.id,
-            customer_email: invoice.customer_email,
-            customer_name: invoice.customer_name,
-            description: invoice.description,
-            lines: invoice.lines,
-            amount_due: invoice.amount_due,
-            date: date,
-            secretCode: secretCode,
-            status: 'open',
-            isProposal: false,
-          },
-        })
-        .promise();
-      console.log('Created new invoice:', invoice.id);
-    } else {
-      await dynamoDb.update(params).promise();
-      console.log('Updated proposal to invoice:', invoice.id);
-    }
-
-    // Generate PDF with Puppeteer and send email
-    const paddedId = String(invoice.id).padStart(6, '0');
-    const invoiceNumber = 'INV-' + paddedId;
-    const hostUrl = `${
-      req.headers.get('x-forwarded-proto') || 'http'
-    }://${req.headers.get('host')}`;
-    const invoiceLink = `${hostUrl}/api/generate-payment-link?id=${invoice.id}&secretCode=${secretCode}`;
-
-    const html = compiledTemplate({
-      ...invoice,
-      invoiceNumber: invoiceNumber,
-      invoiceDate: date,
-      lines: invoice.lines.map((line) => ({
-        ...line,
-        qty: invoice.hoursWorked,
-        total_price: (line.price.unit_amount * invoice.hoursWorked).toFixed(2),
-      })),
-      logoPath: `data:image/jpeg;base64,${logoBase64}`,
-      invoiceLink: invoiceLink,
-      description: invoice.description,
-    });
-
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({ format: 'A4' });
-    await browser.close();
-
-    // Email setup
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.GOOGLE_PASS,
-      },
-    });
-
-    const mailOptions = {
-      from: adminEmail,
-      to: invoice.customer_email,
-      bcc: adminEmail,
-      subject: `Invoice for ${invoice.customer_name}`,
-      text: `Dear ${invoice.customer_name},\n\nPlease find attached your invoice.\n\nBest regards,\nRahimi Custom Construction LLC`,
-      attachments: [
-        {
-          filename: 'invoice.pdf',
-          content: pdfBuffer,
-          contentType: 'application/pdf',
-        },
-      ],
-    };
-
     await transporter.sendMail(mailOptions);
-
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Invoice created or updated and sent via Email',
+        message: 'Invoice created and sent via email',
       }),
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error processing invoice:', error);
+    console.error('Error sending email:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        message: 'Failed to process invoice',
+        message: 'Failed to send invoice pdf',
       }),
       { status: 500 }
     );
   }
 }
 
-// Fetches the latest invoice ID
+// Generate PDF from HTML
+const generatePDF = async (html) => {
+  const options = { format: 'A4' }; // PDF page format
+  const file = { content: html }; // Pass the HTML content
+  const pdfBuffer = await pdf.generatePdf(file, options);
+  return pdfBuffer;
+};
+
+// Fetch the latest invoice ID from DynamoDB
 const getLatestInvoiceId = async () => {
   const params = {
     TableName: 'rahimi-invoices',

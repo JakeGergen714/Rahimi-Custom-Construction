@@ -267,12 +267,20 @@ const AdminInvoicesPage2 = () => {
               Invoices
             </a>
           </li>
-          <li>
+          <li className='mb-6 pt-4'>
             <a
               href='/proposal'
               className='text-white hover:text-blue-500 text-xl'
             >
               Proposals
+            </a>
+          </li>
+          <li className='mb-6 pt-4'>
+            <a
+              href='/images'
+              className='text-white hover:text-blue-500 text-xl'
+            >
+              Images
             </a>
           </li>
         </ul>

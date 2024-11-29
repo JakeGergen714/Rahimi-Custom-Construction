@@ -1,40 +1,8 @@
 import Head from 'next/head';
-import Link from 'next/link';
 import Image from 'next/image';
+import HomeGallery from './components/HomeGallery';
 
 export default function Home() {
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent the default form submission behavior
-
-    // Create a form data object from the event
-    const formData = new FormData(e.target);
-    const formObject = {};
-    formData.forEach((value, key) => {
-      formObject[key] = value;
-    });
-
-    try {
-      const response = await fetch('/api/send-contact-us-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formObject),
-      });
-
-      if (response.ok) {
-        alert('Message sent successfully!');
-        e.target.reset(); // Optionally reset the form
-      } else {
-        const { error } = await response.json();
-        alert(error || 'Failed to send message. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      alert('Failed to send message. Please try again.');
-    }
-  };
-
   return (
     <div>
       <Head>
@@ -281,76 +249,7 @@ export default function Home() {
           </div>
         </div>
         {/* Gallery Section */}
-        <div className='gallery-container'>
-          <div className='absolute inset-0 bg-stone-950 opacity-70'></div>
-
-          <div className='grid-container relative z-10'>
-            {/* Portfolio Title */}
-            <div className='text-4xl sm:text-5xl lg:text-7xl font-bold text-white tracking-tighter text-center pb-4 text-stone-200'>
-              Our Portfolio
-            </div>
-
-            {/* Image Grid */}
-            <div className='grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-1 md:gap-2 lg:gap-3 '>
-              {/* Image 1 */}
-              <div className='col-span-1 md:col-span-3 lg:col-span-3 row-span-1 relative overflow-hidden'>
-                <Image
-                  src='/slideshow/custom-shelf.jpeg'
-                  width={800}
-                  height={600}
-                  className='bject-cover w-full h-full'
-                  alt='Custom woodworking project portfolio image'
-                />
-                <div className='absolute inset-0 bg-orange-700 opacity-10'></div>
-              </div>
-
-              {/* Image 2 */}
-              <div className='col-span-1 md:col-span-5 row-span-1 relative overflow-hidden'>
-                <Image
-                  src='/slideshow/custom-handrail.webp'
-                  width={800}
-                  height={600}
-                  className='bject-cover w-full h-full'
-                  alt='Home renovation project in Knoxville, TN'
-                />
-                <div className='absolute inset-0 bg-orange-700 opacity-10'></div>
-              </div>
-
-              {/* Image 3 */}
-              <div className='col-span-1 md:col-span-4 lg:col-span-4 row-span-1 relative overflow-hidden'>
-                <Image
-                  src='/slideshow/renovation.webp'
-                  width={800}
-                  height={600}
-                  className='bject-cover w-full h-full'
-                  alt='Deck and porch project portfolio image'
-                />
-                <div className='absolute inset-0 bg-orange-700 opacity-10'></div>
-              </div>
-
-              {/* Image 4 */}
-              <div className='col-span-1 md:col-span-4 lg:col-span-4 row-span-1 relative overflow-hidden'>
-                <Image
-                  src='/slideshow/custom-cabinet.jpeg'
-                  width={800}
-                  height={600}
-                  className='object-cover w-full h-full'
-                  alt='Custom railing and stair project in Knoxville, TN'
-                />
-                <div className='absolute inset-0 bg-orange-700 opacity-10'></div>
-              </div>
-            </div>
-
-            {/* Link to Gallery Page */}
-            <div className='flex justify-center p-4 relative'>
-              <Link href='/gallery'>
-                <div className='px-8 sm:px-12 lg:px-16 py-4 border border-white text-white uppercase tracking-widest text-lg hover:bg-slate-500 hover:text-white transition-all duration-300 bg-stone-500'>
-                  View Gallery
-                </div>
-              </Link>
-            </div>
-          </div>
-        </div>
+        <HomeGallery></HomeGallery>
 
         <div className='contact-us-container'>
           <div className='absolute inset-0 bg-stone-800 opacity-70'></div>
