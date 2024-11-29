@@ -19,7 +19,7 @@ export async function POST(req) {
     // Send the email
     await transporter.sendMail({
       from: process.env.SMTP_USER,
-      to: process.env.SMTP_USER,
+      to: process.env.ADMIN_EMAIL,
       subject: 'New Message from Rahimi Custom Construction Contact Form',
       text: `Hello,\n\nYou have received a new message from your website contact form.\n\nFull Name: ${name}\nEmail: ${email}\nPhone: ${phone}\n\nMessage:\n${message}\n\nBest regards,\nGergen Software`,
     });

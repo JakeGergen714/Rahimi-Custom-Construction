@@ -281,11 +281,13 @@ const AdminInvoicesPage2 = () => {
       {/* Main content area */}
       <div className='flex-1 main-content-container bg-gray-200 w-4/5 h-full p-6 w-full'>
         <div className='innerContainer sm:max-w-[640px] md:max-w-[768px] lg:max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1536px] mx-auto flex flex-col h-full'>
-          <h1 className='text-3xl font-semibold mb-6'>Admin Panel</h1>
+          <h1 className='text-3xl font-semibold mb-6 text-black'>
+            Admin Panel
+          </h1>
 
           {/* Invoice Table */}
           <div className='bg-white p-4 shadow rounded-lg max-w-full flex flex-col flex-grow h-full min-h-0'>
-            <h2 className='text-2xl font-medium mb-4'>Proposals</h2>
+            <h2 className='text-2xl font-medium mb-4 text-black'>Proposals</h2>
 
             {/* Filters */}
             <div className='flex flex-wrap pt-4 border-b pb-2 gap-2 sm:gap-4'>
@@ -299,7 +301,7 @@ const AdminInvoicesPage2 = () => {
             {loading && (
               <div className='flex justify-center items-center h-full'>
                 <div className='spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full text-blue-600'>
-                  <span className='sr-only'>Loading...</span>
+                  <span className='sr-only text-black'>Loading...</span>
                 </div>
               </div>
             )}
@@ -347,7 +349,7 @@ const AdminInvoicesPage2 = () => {
                           </td>
 
                           <td
-                            className='py-1 px-1 font-semibold max-w-10 truncate whitespace-nowrap overflow-hidden'
+                            className='py-1 px-1 font-semibold max-w-10 truncate whitespace-nowrap overflow-hidden text-black'
                             title={invoice.customer_email}
                           >
                             {invoice.customer_email}
