@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "postbuild": "next-sitemap"
-    },
+  },
   "dependencies": {
     "aws-sdk": "^2.1691.0",
     "browser-image-compression": "^2.0.2",
@@ -27,6 +27,7 @@
     "next": "14.2.15",
     "next-sitemap": "^4.2.3",
     "nodemailer": "^6.9.15",
+    "pdf-lib": "^1.17.1",
     "pdfkit": "^0.15.1",
     "pdfmake": "^0.2.15",
     "react": "^18.3.1",

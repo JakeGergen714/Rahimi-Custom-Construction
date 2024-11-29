@@ -1,9 +1,15 @@
-import * as pdf from 'html-pdf-node';
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  degrees,
+  PDFName,
+  PDFString,
+} from 'pdf-lib';
 import nodemailer from 'nodemailer';
 import AWS from 'aws-sdk';
 import fs from 'fs';
 import path from 'path';
-import Handlebars from 'handlebars';
 
 // AWS DynamoDB setup
 const dynamoDb = new AWS.DynamoDB.DocumentClient({
@@ -13,12 +19,6 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient({
 });
 
 // Compile Handlebars template
-const templatePath = path.join(
-  process.cwd(),
-  'src/templates/invoiceTemplate.html'
-);
-const templateContent = fs.readFileSync(templatePath, 'utf8');
-const compiledTemplate = Handlebars.compile(templateContent);
 const logoPath = path.resolve('public/logo.jpg');
 const logoBase64 = fs.readFileSync(logoPath, 'base64');
 
@@ -58,25 +58,20 @@ export async function POST(req) {
   }://${req.headers.get('host')}`;
   const invoiceLink = `${hostUrl}/api/generate-payment-link?id=${invoice.id}&secretCode=${secretCode}`;
 
-  const html = compiledTemplate({
-    ...invoice,
-    invoiceNumber: invoiceNumber,
-    invoiceDate: date,
-    lines: invoice.lines.map((line) => ({
-      ...line,
-      description:
-        line.description === 'Labor'
-          ? `${line.description} - ${invoice.description}`
-          : line.description,
-      qty: invoice.hoursWorked,
-      total_price: (line.price.unit_amount * invoice.hoursWorked).toFixed(2),
-    })),
-    logoPath: `data:image/jpeg;base64,${logoBase64}`,
-    invoiceLink: invoiceLink,
-  });
+  console.log(invoice);
 
-  // Generate PDF from HTML
-  const pdfBuffer = await generatePDF(html);
+  // Generate PDF
+  const pdfBuffer = await generatePDF({
+    description: invoice.description,
+    invoiceNumber,
+    date,
+    customer_name: invoice.customer_name,
+    customer_email: invoice.customer_email,
+    lines: invoice.lines,
+    amount_due: invoice.amount_due,
+    invoiceLink,
+    logoBase64,
+  });
 
   // Send email with the generated PDF
   const transporter = nodemailer.createTransport({
@@ -125,12 +120,141 @@ export async function POST(req) {
   }
 }
 
-// Generate PDF from HTML
-const generatePDF = async (html) => {
-  const options = { format: 'A4' }; // PDF page format
-  const file = { content: html }; // Pass the HTML content
-  const pdfBuffer = await pdf.generatePdf(file, options);
-  return pdfBuffer;
+const generatePDF = async ({
+  description,
+  invoiceNumber,
+  date,
+  customer_name,
+  customer_email,
+  lines,
+  amount_due,
+  invoiceLink,
+  logoBase64,
+}) => {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([612, 792]); // Letter size (8.5 x 11 inches)
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  // Embed the logo
+  const logo = await pdfDoc.embedJpg(Buffer.from(logoBase64, 'base64'));
+  page.drawImage(logo, {
+    x: 40,
+    y: 700,
+    width: 100,
+    height: 100,
+  });
+
+  // Add invoice details
+  page.drawText(`Invoice Number: ${invoiceNumber}`, {
+    x: 200,
+    y: 750,
+    font: boldFont,
+    size: 12,
+  });
+  page.drawText(`Date: ${date}`, { x: 200, y: 735, font: font, size: 12 });
+
+  // Add customer details
+  page.drawText(`BILL TO: ${customer_name}`, {
+    x: 40,
+    y: 700,
+    font: boldFont,
+    size: 12,
+  });
+  page.drawText(customer_email, { x: 40, y: 685, font: font, size: 12 });
+
+  // Add table headers
+  let y = 650;
+  page.drawText('No', { x: 40, y, font: boldFont, size: 10 });
+  page.drawText('Description', { x: 80, y, font: boldFont, size: 10 });
+  page.drawText('QTY', { x: 300, y, font: boldFont, size: 10 });
+  page.drawText('Unit Price', { x: 350, y, font: boldFont, size: 10 });
+  page.drawText('Total Price', { x: 450, y, font: boldFont, size: 10 });
+
+  const rowHeight = 15; // Height of each row
+  y -= 15;
+  // Add line items
+  lines.forEach((line, index) => {
+    console.log(line);
+    let total_price =
+      Number(line.price.unit_amount) * Number(line.price.unit_quantity);
+    page.drawText(`${index + 1}`, { x: 40, y, font: font, size: 10 });
+    page.drawText(
+      line.description + line.description === 'Labor'
+        ? ' - ' + description
+        : '',
+      { x: 80, y, font: font, size: 10 }
+    );
+    page.drawText(`${Number(line.price.unit_quantity)}`, {
+      x: 300,
+      y,
+      font: font,
+      size: 10,
+    });
+    page.drawText(`$${Number(line.price.unit_amount).toFixed(2)}`, {
+      x: 350,
+      y,
+      font: font,
+      size: 10,
+    });
+    page.drawText(`$${Number(total_price).toFixed(2)}`, {
+      x: 450,
+      y,
+      font: font,
+      size: 10,
+    });
+    y -= 15;
+  });
+
+  // Add total amount
+  page.drawText(`Total Amount Due: $${Number(amount_due).toFixed(2)}`, {
+    x: 350,
+    y: y - 20,
+    font: boldFont,
+    size: 12,
+  });
+
+  // Add payment link with custom text
+  const linkY = y - 50; // Position for the link
+  const linkX = 40;
+  const linkText = 'Click here to pay online'; // Custom text for the link
+
+  page.drawText(linkText, {
+    x: linkX,
+    y: linkY,
+    font: boldFont,
+    size: 12,
+    color: rgb(0, 0, 1), // Blue color to indicate it's clickable
+  });
+
+  // Create a link annotation for the payment link
+  const createPageLinkAnnotation = (page, uri) =>
+    page.doc.context.register(
+      page.doc.context.obj({
+        Type: 'Annot',
+        Subtype: 'Link',
+        Rect: [
+          linkX,
+          linkY - 12,
+          linkX + boldFont.widthOfTextAtSize(linkText, 12),
+          linkY,
+        ], // [x1, y1, x2, y2]
+        Border: [0, 0, 0],
+        A: {
+          Type: 'Action',
+          S: 'URI',
+          URI: PDFString.of(uri),
+        },
+      })
+    );
+
+  const linkAnnotation = createPageLinkAnnotation(page, invoiceLink);
+
+  // Add the annotation to the page
+  page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkAnnotation]));
+
+  // Serialize PDF to buffer
+  return await pdfDoc.save();
 };
 
 // Fetch the latest invoice ID from DynamoDB
