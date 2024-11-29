@@ -7,9 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postbuild": "next-sitemap",
-    "postinstall": "npx puppeteer install"
-  },
+    "postbuild": "next-sitemap"
+    },
   "dependencies": {
     "aws-sdk": "^2.1691.0",
     "browser-image-compression": "^2.0.2",
