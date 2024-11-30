@@ -84,7 +84,6 @@ export async function GET(req) {
 
     // Query DynamoDB
     const result = await dynamoDb.query(params).promise();
-    console.log(result);
 
     const lastEvaluatedKey = result.LastEvaluatedKey
       ? encodeURIComponent(JSON.stringify(result.LastEvaluatedKey))

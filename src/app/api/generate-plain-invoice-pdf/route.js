@@ -56,9 +56,9 @@ export async function POST(req) {
   const hostUrl = `${
     req.headers.get('x-forwarded-proto') || 'http'
   }://${req.headers.get('host')}`;
-  const invoiceLink = `${hostUrl}/api/generate-payment-link?id=${invoice.id}&secretCode=${secretCode}`;
+  const invoiceLink = `${hostUrl}/api/generate-payment-link?id=${id}&secretCode=${secretCode}`;
 
-  console.log(invoice);
+  console.log(invoiceLink);
 
   // Generate PDF
   const pdfBuffer = await generatePDF({
@@ -176,13 +176,13 @@ const generatePDF = async ({
   // Add line items
   lines.forEach((line, index) => {
     console.log(line);
+    line.description === 'Labor';
     let total_price =
       Number(line.price.unit_amount) * Number(line.price.unit_quantity);
     page.drawText(`${index + 1}`, { x: 40, y, font: font, size: 10 });
     page.drawText(
-      line.description + line.description === 'Labor'
-        ? ' - ' + description
-        : '',
+      line.description +
+        (line.description === 'Labor' ? ' - ' + description : ''),
       { x: 80, y, font: font, size: 10 }
     );
     page.drawText(`${Number(line.price.unit_quantity)}`, {
@@ -215,43 +215,96 @@ const generatePDF = async ({
   });
 
   // Add payment link with custom text
-  const linkY = y - 50; // Position for the link
-  const linkX = 40;
-  const linkText = 'Click here to pay online'; // Custom text for the link
+  // Add payment section
+  const paymentY = y - 50; // Position for the payment section
+  const paymentX = 40;
 
-  page.drawText(linkText, {
-    x: linkX,
-    y: linkY,
+  page.drawText('Pay Online:', {
+    x: paymentX,
+    y: paymentY,
     font: boldFont,
     size: 12,
-    color: rgb(0, 0, 1), // Blue color to indicate it's clickable
   });
 
-  // Create a link annotation for the payment link
-  const createPageLinkAnnotation = (page, uri) =>
-    page.doc.context.register(
-      page.doc.context.obj({
-        Type: 'Annot',
-        Subtype: 'Link',
-        Rect: [
-          linkX,
-          linkY - 12,
-          linkX + boldFont.widthOfTextAtSize(linkText, 12),
-          linkY,
-        ], // [x1, y1, x2, y2]
-        Border: [0, 0, 0],
-        A: {
-          Type: 'Action',
-          S: 'URI',
-          URI: PDFString.of(uri),
-        },
-      })
-    );
+  const linkText =
+    'Click here to pay online (A 3.5% card processing fee applies):';
+  page.drawText(linkText, {
+    x: paymentX,
+    y: paymentY - 15,
+    font: boldFont,
+    size: 10,
+    color: rgb(0, 0, 1), // Blue color for the clickable link
+  });
 
-  const linkAnnotation = createPageLinkAnnotation(page, invoiceLink);
-
-  // Add the annotation to the page
+  // Add the clickable annotation for the link
+  const linkWidth = boldFont.widthOfTextAtSize(linkText, 10);
+  const linkAnnotation = pdfDoc.context.register(
+    pdfDoc.context.obj({
+      Type: 'Annot',
+      Subtype: 'Link',
+      Rect: [paymentX, paymentY - 10, paymentX + linkWidth, paymentY - 30], // [x1, y1, x2, y2]
+      Border: [0, 0, 0],
+      A: {
+        Type: 'Action',
+        S: 'URI',
+        URI: PDFString.of(invoiceLink),
+      },
+    })
+  );
   page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkAnnotation]));
+
+  page.drawText('Other Payments accepted: Cash, Check or Venmo', {
+    x: paymentX,
+    y: paymentY - 75,
+    font: boldFont,
+    size: 12,
+  });
+
+  // Add footer text at the bottom of the page
+  const footerY = paymentY - 200; // Y-position near the bottom of the page
+  const footerX = 40; // X-position for the text alignment
+
+  page.drawText('Please let me know if you have any questions or concerns.', {
+    x: footerX,
+    y: footerY + 40,
+    font: font,
+    size: 10,
+  });
+
+  page.drawText('Sincerely,', {
+    x: footerX,
+    y: footerY + 25,
+    font: font,
+    size: 10,
+  });
+
+  page.drawText('Farzad Rahimi', {
+    x: footerX,
+    y: footerY + 10,
+    font: boldFont,
+    size: 10,
+  });
+
+  page.drawText('Rahimi Custom Construction LLC', {
+    x: footerX,
+    y: footerY - 5,
+    font: font,
+    size: 10,
+  });
+
+  page.drawText('rahimillc123@gmail.com', {
+    x: footerX,
+    y: footerY - 20,
+    font: font,
+    size: 10,
+  });
+
+  page.drawText('(703) 341-9507', {
+    x: footerX,
+    y: footerY - 35,
+    font: font,
+    size: 10,
+  });
 
   // Serialize PDF to buffer
   return await pdfDoc.save();

@@ -1,9 +1,20 @@
-import * as pdf from 'html-pdf-node';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 import nodemailer from 'nodemailer';
-import AWS from 'aws-sdk';
 import fs from 'fs';
-import path from 'path';
 import Handlebars from 'handlebars';
+import path from 'path';
+import AWS from 'aws-sdk';
+
+// File paths and Handlebars setup
+const templatePath = path.join(
+  process.cwd(),
+  'src/templates/proposalTemplate.html'
+);
+const template = fs.readFileSync(templatePath, 'utf8');
+const compiledTemplate = Handlebars.compile(template);
+const logoPath = path.resolve('public/logo.jpg');
+const logoBase64 = fs.readFileSync(logoPath, 'base64');
 
 // AWS DynamoDB setup
 const dynamoDb = new AWS.DynamoDB.DocumentClient({
@@ -12,68 +23,57 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
-// Compile Handlebars template
-const templatePath = path.join(
-  process.cwd(),
-  'src/templates/proposalTemplate.html'
-);
-const templateContent = fs.readFileSync(templatePath, 'utf8');
-const compiledTemplate = Handlebars.compile(templateContent);
-const logoPath = path.resolve('public/logo.jpg');
-const logoBase64 = fs.readFileSync(logoPath, 'base64');
+const adminEmail = process.env.ADMIN_EMAIL;
 
 export async function POST(req) {
   const invoice = await req.json();
 
-  // Generate a unique invoice ID
+  console.log(invoice);
+
   const latestId = await getLatestInvoiceId();
   const id = latestId + 1;
+  console.log(`Generated ID: ${id}`);
 
   const date = new Date().toLocaleDateString();
   const secretCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // Save the invoice to DynamoDB
-  const invoiceNumber = `PRO-${String(id).padStart(6, '0')}`;
-  await dynamoDb
-    .put({
-      TableName: 'rahimi-invoices',
-      Item: {
-        invoice_partition: 'invoices',
-        id,
-        customer_email: invoice.customer_email,
-        customer_name: invoice.customer_name,
-        lines: invoice.lines,
-        amount_due: invoice.amount_due,
-        date,
-        secretCode,
-        isProposal: true,
-        status: 'open',
-        description: invoice.description,
-      },
-    })
-    .promise();
+  // Create the DynamoDB entry
+  const params = {
+    TableName: 'rahimi-invoices',
+    Item: {
+      invoice_partition: 'invoices',
+      id,
+      customer_email: invoice.customer_email,
+      customer_name: invoice.customer_name,
+      lines: invoice.lines,
+      amount_due: invoice.amount_due,
+      date,
+      secretCode,
+      isProposal: true,
+      status: 'open',
+      description: invoice.description,
+    },
+  };
 
-  // Render the Handlebars template
+  await dynamoDb.put(params).promise();
+
+  // Prepare the HTML for the PDF
+  const paddedId = String(id).padStart(6, '0');
+  const invoiceNumber = `PRO-${paddedId}`;
   const html = compiledTemplate({
     ...invoice,
     invoiceNumber,
     invoiceDate: date,
-    customerName: invoice.customer_name,
-    customerEmail: invoice.customer_email,
-    lines: invoice.lines.map((line) => ({
+    lines: invoice.lines.map((line, index) => ({
       ...line,
-      description:
-        line.description === 'Labor'
-          ? `${line.description} - ${invoice.description}`
-          : line.description,
       qty: invoice.hoursWorked,
       total_price: (line.price.unit_amount * invoice.hoursWorked).toFixed(2),
     })),
     logoPath: `data:image/jpeg;base64,${logoBase64}`,
-    totalAmount: invoice.amount_due.toFixed(2),
+    description: invoice.description,
   });
 
-  // Generate PDF from HTML
+  // Generate the PDF using puppeteer-core and @sparticuz/chrome-aws-lambda
   const pdfBuffer = await generatePDF(html);
 
   // Send email with the generated PDF
@@ -88,9 +88,9 @@ export async function POST(req) {
   });
 
   const mailOptions = {
-    from: process.env.ADMIN_EMAIL,
+    from: adminEmail,
     to: invoice.customer_email,
-    bcc: process.env.ADMIN_EMAIL,
+    bcc: adminEmail,
     subject: `Proposal for ${invoice.customer_name}`,
     text: `Dear ${invoice.customer_name},\n\nPlease find attached your proposal.\n\nBest regards,\nRahimi Custom Construction LLC`,
     attachments: [
@@ -107,7 +107,7 @@ export async function POST(req) {
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Proposal created and sent via email',
+        message: 'Proposal created and sent via Email',
       }),
       { status: 200 }
     );
@@ -123,11 +123,19 @@ export async function POST(req) {
   }
 }
 
-// Generate PDF from HTML
+// Generate PDF using puppeteer-core and @sparticuz/chrome-aws-lambda
 const generatePDF = async (html) => {
-  const options = { format: 'A4' }; // PDF page format
-  const file = { content: html }; // Pass the HTML content
-  const pdfBuffer = await pdf.generatePdf(file, options);
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+  });
+
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: 'networkidle0' });
+  const pdfBuffer = await page.pdf({ format: 'A4' });
+  await browser.close();
+
   return pdfBuffer;
 };
 
