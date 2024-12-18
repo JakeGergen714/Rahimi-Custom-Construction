@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://www.rahimicustomconstruction.com/api/logout</loc><lastmod>2024-10-22T23:26:27.784Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://www.rahimicustomconstruction.com</loc><lastmod>2024-10-22T23:26:27.784Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://www.rahimicustomconstruction.com/gallery</loc><lastmod>2024-10-22T23:26:27.784Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://www.rahimicustomconstruction.com/api/logout</loc><lastmod>2024-12-18T18:12:14.465Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://www.rahimicustomconstruction.com/images</loc><lastmod>2024-12-18T18:12:14.466Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://www.rahimicustomconstruction.com</loc><lastmod>2024-12-18T18:12:14.466Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://www.rahimicustomconstruction.com/proposal</loc><lastmod>2024-12-18T18:12:14.466Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://www.rahimicustomconstruction.com/paidInvoice</loc><lastmod>2024-12-18T18:12:14.466Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://www.rahimicustomconstruction.com/api/image-fetch-all</loc><lastmod>2024-12-18T18:12:14.466Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 </urlset>
