@@ -61,6 +61,7 @@ export async function GET(req) {
       req.headers.get('x-forwarded-proto') || 'http'
     }://${req.headers.get('host')}`;
 
+    console.log(invoice);
     if (invoice.status != 'open') {
       console.log('invoice already paid');
       return NextResponse.redirect(

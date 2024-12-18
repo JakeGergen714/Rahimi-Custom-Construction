@@ -253,12 +253,15 @@ const generatePDF = async ({
   );
   page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([linkAnnotation]));
 
-  page.drawText('Other Payments accepted: Cash, Check or Venmo', {
-    x: paymentX,
-    y: paymentY - 75,
-    font: boldFont,
-    size: 12,
-  });
+  page.drawText(
+    'Other Payments accepted: Cash, Check or Payment Apps (Paypal, Venmo, etc...)',
+    {
+      x: paymentX,
+      y: paymentY - 75,
+      font: boldFont,
+      size: 12,
+    }
+  );
 
   // Add footer text at the bottom of the page
   const footerY = paymentY - 200; // Y-position near the bottom of the page

@@ -11,45 +11,65 @@ const s3 = new AWS.S3();
 
 export async function GET(req) {
   try {
+    // Fetch all projects from DynamoDB
     const { Items } = await dynamoDB
       .query({
-        TableName: 'rahimi-invoices',
-        KeyConditionExpression: 'invoice_partition = :partitionKey',
+        TableName: 'rahimi-invoices', // Assuming the table name is still 'rahimi-invoices'
+        KeyConditionExpression: 'invoice_partition = :partitionKey', // Correct key
         ExpressionAttributeValues: {
-          ':partitionKey': 'images',
+          ':partitionKey': 'projects', // Correct partition key value for projects
         },
       })
       .promise();
 
-    console.log('Fetched Data:', Items);
+    // Generate signed URLs for main image and additional images in each project
+    const projectsWithSignedUrls = await Promise.all(
+      Items.map(async (project) => {
+        // Generate signed URL for the main image
+        const mainImageSignedUrl = s3.getSignedUrl('getObject', {
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: project.mainImage.s3Key, // Directly use the s3Key
+          Expires: 3600, // URL expiry in seconds (1 hour)
+        });
 
-    // Generate signed URLs for each image
-    const imagesWithSignedUrls = Items.map((item) => {
-      const url = new URL(item.imageUrl);
-      const s3Key = url.pathname.slice(1); // Extract the S3 key
-      console.log('Extracted S3 Key:', s3Key);
-      const signedUrl = s3.getSignedUrl('getObject', {
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
-        Key: s3Key,
-        Expires: 3600, // URL expiry in seconds (1 hour)
-      });
+        // Generate signed URLs for additional images
+        const additionalImagesWithSignedUrls = await Promise.all(
+          project.additionalImages.map((image) => {
+            const signedUrl = s3.getSignedUrl('getObject', {
+              Bucket: process.env.AWS_S3_BUCKET_NAME,
+              Key: image.s3Key, // Directly use the s3Key
+              Expires: 3600,
+            });
 
-      return {
-        ...item,
-        signedUrl,
-      };
-    });
+            return {
+              ...image,
+              signedUrl,
+            };
+          })
+        );
 
-    console.log(imagesWithSignedUrls);
+        // Return the project with signed URLs
+        return {
+          ...project,
+          mainImage: {
+            ...project.mainImage,
+            signedUrl: mainImageSignedUrl,
+          },
+          additionalImages: additionalImagesWithSignedUrls,
+        };
+      })
+    );
 
-    return new Response(JSON.stringify({ images: imagesWithSignedUrls }), {
+    console.log('Projects with Signed URLs:', projectsWithSignedUrls);
+
+    return new Response(JSON.stringify({ projects: projectsWithSignedUrls }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error fetching images:', error);
+    console.error('Error fetching projects:', error);
 
-    return new Response(JSON.stringify({ error: 'Failed to fetch images' }), {
+    return new Response(JSON.stringify({ error: 'Failed to fetch projects' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

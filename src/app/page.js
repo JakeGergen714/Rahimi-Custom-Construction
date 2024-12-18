@@ -54,7 +54,7 @@ export default function Home() {
         </script>
       </Head>
 
-      <header className='absolute top-0 left-0 w-full z-20'>
+      <header className='absolute top-0 left-0 w-full z-20 '>
         <div className='p-6 text-white font-bold text-left'>
           <div className='text-1xl leading-tight'>Rahimi</div>
           <div className='text-1xl leading-tight'>Custom</div>
@@ -254,7 +254,7 @@ export default function Home() {
         <div className='contact-us-container'>
           <div className='absolute inset-0 bg-stone-800 opacity-70'></div>
 
-          <div className='relative z-10 flex flex-col md:flex-row justify-between items-center w-full max-w-6xl'>
+          <div className='relative flex flex-col md:flex-row justify-between items-center w-full max-w-6xl'>
             {/* Left side - Email and Phone Number */}
             <div className='w-full md:w-1/2 text-white text-left mb-8 md:mb-0 md:pr-8'>
               <h2 className='text-2xl font-bold mb-4'>Get in Touch</h2>

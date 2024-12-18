@@ -3,15 +3,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AiOutlineMenu, AiOutlineClose } from 'react-icons/ai';
 import imageCompression from 'browser-image-compression';
+import AddProjectModal from './AddProjectModal'; // Import the modal
 
 const Images = () => {
   const [loading, setLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState([]); // State for uploaded images
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState([]); // State for uploaded projects
+  const [selectedProject, setSelectedProject] = useState(null); // State for selected project to edit
   const [remainingStorage, setRemainingStorage] = useState(null); // State for remaining storage
   const menuRef = useRef(null);
 
-  const MAX_STORAGE_LIMIT = 1 * 1024 ** 3; // 5 GB in bytes
+  const MAX_STORAGE_LIMIT = 1 * 1024 ** 3; // 1 GB in bytes
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
@@ -30,7 +33,7 @@ const Images = () => {
     };
   }, []);
 
-  // Fetch images from the server
+  // Fetch projects from the server
   const fetchImages = async () => {
     setLoading(true);
 
@@ -38,15 +41,15 @@ const Images = () => {
       const response = await fetch('/api/image-fetch-all');
       const data = await response.json();
 
-      console.log(data);
+      console.log('Fetched Projects:', data.projects);
 
       if (response.ok) {
-        setUploadedImages(data.images); // Set images in state
+        setUploadedImages(data.projects); // Assuming 'projects' is the array of project objects
       } else {
-        console.error('Error fetching images:', data.error);
+        console.error('Error fetching projects:', data.error);
       }
     } catch (error) {
-      console.error('Error fetching images:', error);
+      console.error('Error fetching projects:', error);
     } finally {
       setLoading(false);
     }
@@ -68,7 +71,7 @@ const Images = () => {
     }
   };
 
-  // Fetch images and remaining storage when the component mounts
+  // Fetch projects and remaining storage when the component mounts
   useEffect(() => {
     fetchImages();
     fetchRemainingStorage();
@@ -80,112 +83,221 @@ const Images = () => {
   const usedPercentage =
     remainingStorage !== null ? (usedStorage / MAX_STORAGE_LIMIT) * 100 : 0;
 
-  // Handle file selection and upload
-  const handleFileChange = async (event) => {
-    const files = Array.from(event.target.files);
-    setLoading(true);
+  const handleSaveProject = async (projectData) => {
+    setSelectedProject(null);
 
-    try {
-      const uploadedFiles = await Promise.all(
-        files.map(async (file) => {
-          console.log('Original File:', file.name, file.type, file.size);
+    if (projectData.id) {
+      // Editing an existing project
+      console.log('Editing project:', projectData);
 
-          // Set compression options
-          const options = {
-            maxSizeMB: 1, // Maximum size in MB
-            maxWidthOrHeight: 1920, // Maximum width or height in pixels
-            useWebWorker: true,
-            fileType: 'image/webp', // Convert to WebP format
-          };
+      try {
+        // Prepare payload for backend
+        const payload = {
+          ...projectData,
+          mainImage:
+            projectData.mainImage instanceof File
+              ? {
+                  fileName: projectData.mainImage.fileName,
+                  fileType: projectData.mainImage.fileType,
+                }
+              : {
+                  s3Key: projectData.mainImage.s3Key,
+                  fileName: projectData.mainImage.fileName,
+                  fileType: projectData.mainImage.fileType,
+                },
+          additionalPictures: projectData.additionalPictures.map(
+            (image) =>
+              image instanceof File
+                ? {
+                    fileName: image.name,
+                    fileType: image.type,
+                  }
+                : image // Preserve existing metadata if not changed
+          ),
+        };
 
-          // Compress and resize image
-          const compressedFile = await imageCompression(file, options);
+        console.log('Payload for PUT:', payload); // Debugging
 
+        const response = await fetch('/api/projects-edit', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('Error editing project:', error.error);
+          alert(error.error || 'An error occurred while editing the project.');
+          return;
+        }
+
+        // Update the UI with the response data
+        const {
+          updatedProject,
+          mainImageUploadUrl,
+          additionalImageUploadUrls,
+        } = await response.json();
+
+        console.log('Response from PUT:', {
+          updatedProject,
+          mainImageUploadUrl,
+          additionalImageUploadUrls,
+        }); // Debugging
+
+        // If there are new files to upload, upload them to S3
+        if (mainImageUploadUrl) {
           console.log(
-            'Compressed File:',
-            decodeURIComponent(compressedFile.name),
-            compressedFile.type,
-            compressedFile.size
+            'Uploading main image to S3...',
+            mainImageUploadUrl,
+            projectData.mainImage
           );
-
-          // Send compressed file size to the server
-          const response = await fetch('/api/image-upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              fileName: compressedFile.name,
-              fileType: compressedFile.type,
-              fileSize: compressedFile.size, // Send the size in bytes
-            }),
-          });
-
-          // Handle storage limit exceeded error
-          if (!response.ok) {
-            const errorData = await response.json();
-            alert(errorData.error || 'An error occurred during upload.');
-            return null;
-          }
-
-          const { uploadUrl, imageUrl } = await response.json();
-          console.log('Presigned Upload URL:', uploadUrl);
-
-          // Upload the file to S3
-          await fetch(uploadUrl, {
+          await fetch(mainImageUploadUrl, {
             method: 'PUT',
-            headers: { 'Content-Type': compressedFile.type },
-            body: compressedFile,
+            headers: { 'Content-Type': projectData.mainImage.type },
+            body: projectData.mainImage.file,
           });
+        }
 
-          return {
-            id: imageUrl.split('/').pop(),
-            name: file.name,
-            imageUrl: imageUrl,
-          };
-        })
-      );
+        if (
+          additionalImageUploadUrls?.length > 0 &&
+          projectData.additionalPictures.length > 0
+        ) {
+          console.log(
+            'Uploading additional images to S3...',
+            additionalImageUploadUrls
+          );
+          console.log(projectData.additionalPictures);
+          await Promise.all(
+            additionalImageUploadUrls.map(({ uploadUrl, fileName }) => {
+              const file = projectData.additionalPictures.find(
+                (img) => img.fileName === fileName
+              );
+              console.log('found file', file);
+              if (!file) {
+                console.error(`File not found for fileName: ${fileName}`);
+                return Promise.resolve(); // Skip if file not found
+              }
+              console.log(`Uploading file: ${file.fileName} to ${uploadUrl}`);
+              return fetch(uploadUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.fileType },
+                body: file.file, // Send the entire File object
+              }).then((res) => {
+                if (!res.ok) {
+                  throw new Error(`Failed to upload image: ${file.name}`);
+                }
+                return res;
+              });
+            })
+          );
+        }
 
-      // Filter out any null results (in case of errors)
-      const successfulUploads = uploadedFiles.filter((file) => file !== null);
+        // Update the local state
+        setUploadedImages((prev) =>
+          prev.map((proj) =>
+            proj.id === updatedProject.id ? updatedProject : proj
+          )
+        );
+        console.log('Project updated successfully:', updatedProject);
 
-      console.log(successfulUploads);
-
-      // Refresh the image list and remaining storage
-      fetchImages();
-      fetchRemainingStorage();
-    } catch (error) {
-      console.error('Error uploading files:', error);
-    } finally {
-      setLoading(false);
+        // Refetch projects to refresh the UI
+        fetchImages();
+      } catch (error) {
+        console.error('Error updating project:', error);
+        alert('An error occurred while updating the project.');
+      }
+    } else {
+      // Adding a new project
+      console.log('Adding new project:', projectData);
+      handleProjectUpload(projectData);
     }
   };
 
-  // Handle delete image
-  const handleDeleteImage = async (id, s3Key) => {
-    console.log('Deleting image with:', { id, s3Key }); // Log the values
+  const handleEditProject = (project) => {
+    setSelectedProject(project); // Set the project to be edited
+    setIsModalOpen(true); // Open the modal
+  };
+
+  const handleProjectUpload = async (projectData) => {
+    setLoading(true);
+    console.log(
+      'Uploading project with additionalPictures:',
+      projectData.additionalPictures
+    );
 
     try {
-      // Call backend to delete the image
-      const response = await fetch('/api/image-delete', {
-        method: 'DELETE',
+      // Upload project data to the server
+      const response = await fetch('/api/project-upload', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, s3Key }),
+        body: JSON.stringify({
+          id: projectData.id, // Include only if editing
+          title: projectData.title,
+          description: projectData.description,
+          mainImage: projectData.mainImage, // Either { s3Key } or { fileName, fileType }
+          additionalImages: projectData.additionalPictures, // Array of { s3Key } and { fileName, fileType }
+        }),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        console.error('Error deleting image:', error.error);
+        const errorData = await response.json();
+        alert(errorData.error || 'An error occurred during upload.');
         return;
       }
 
-      // Update state to remove the deleted image
-      setUploadedImages((prevImages) =>
-        prevImages.filter((image) => image.id !== id)
+      const { mainImageUploadUrl, additionalImageUploadUrls } =
+        await response.json();
+
+      // Upload main image to S3 if a new main image is provided
+      if (mainImageUploadUrl && projectData.mainImage.fileName) {
+        console.log('Uploading main image to S3...');
+        await fetch(mainImageUploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': projectData.mainImage.fileType },
+          body: projectData.mainImage.file, // Ensure you pass the File object
+        });
+      }
+
+      // Upload additional images to S3
+      // Separate existing and new additional images
+      const newAdditionalImages = projectData.additionalPictures.filter(
+        (img) => img.fileName && img.fileType
       );
 
-      // Update remaining storage
-      fetchRemainingStorage();
+      await Promise.all(
+        newAdditionalImages.map((file, index) => {
+          const uploadUrl = additionalImageUploadUrls[index]?.uploadUrl;
+          if (!uploadUrl) {
+            console.error(
+              `No upload URL provided for additional image at index ${index}. Skipping upload for this image.`
+            );
+            return Promise.resolve(); // Skip this image
+          }
+
+          console.log(`Uploading additional image ${file.fileName} to S3...`);
+          return fetch(uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': file.fileType },
+            body: file.file, // Ensure you pass the File object
+          }).then((res) => {
+            if (!res.ok) {
+              throw new Error(
+                `Failed to upload additional image: ${file.fileName}`
+              );
+            }
+            return res;
+          });
+        })
+      );
+
+      // Refresh the project list or show a success message
+      console.log('Project uploaded successfully!');
+      fetchImages();
     } catch (error) {
-      console.error('Error deleting image:', error);
+      console.error('Error uploading project:', error);
+      alert('An error occurred while uploading the project.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -263,20 +375,25 @@ const Images = () => {
 
             {/* File Upload */}
             <div className='flex flex-wrap pt-4 border-b pb-2 gap-2 sm:gap-4'>
-              <input
-                type='file'
-                accept='image/*'
-                multiple
-                onChange={handleFileChange}
-                className='hidden'
-                id='file-upload'
-              />
-              <label
-                htmlFor='file-upload'
+              <button
                 className='bg-blue-500 text-white rounded-lg px-4 py-2 sm:px-6 hover:bg-blue-600 transition-all cursor-pointer'
+                onClick={() => {
+                  setSelectedProject(null); // Reset the selected project to null
+                  setIsModalOpen(true); // Open the modal
+                }}
               >
-                + Add new Images
-              </label>
+                + Add Project
+              </button>
+              <AddProjectModal
+                isOpen={isModalOpen}
+                onClose={() => {
+                  setIsModalOpen(false);
+                  setSelectedProject(null);
+                  console.log('closed');
+                }}
+                onSave={handleSaveProject}
+                projectToEdit={selectedProject}
+              />
             </div>
 
             {loading && (
@@ -287,40 +404,40 @@ const Images = () => {
               </div>
             )}
 
-            {/* Uploaded Images Gallery */}
+            {/* Uploaded Projects Gallery */}
             {!loading && uploadedImages.length > 0 && (
-              <div className='grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 overflow-auto max-h-[calc(100vh-200px)]'>
-                {uploadedImages.map((image) => (
+              <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-4'>
+                {uploadedImages.map((project) => (
                   <div
-                    key={image.id}
-                    className='relative flex flex-col items-center'
+                    key={project.id} // Use DynamoDB 'id' as the key
+                    className='relative rounded-lg overflow-hidden shadow-lg cursor-pointer'
+                    onClick={() => handleEditProject(project)} // Open modal with project data
                   >
-                    <img
-                      src={image.imageUrl}
-                      alt={image.name}
-                      className='w-full h-auto rounded-lg shadow'
-                    />
-                    <button
-                      onClick={() => {
-                        console.log(image); // Log the full image object for debugging
-                        if (!image.imageUrl) {
-                          console.error('Image URL is missing:', image);
-                          return;
-                        }
+                    {/* Main Image */}
+                    {project.mainImage && (
+                      <div
+                        className='w-full h-48 bg-cover bg-center'
+                        style={{
+                          backgroundImage: `url(${project.mainImage.signedUrl})`,
+                        }}
+                      >
+                        {/* Slate overlay */}
+                        <div className='absolute inset-0 bg-slate-700 opacity-60'></div>
+                      </div>
+                    )}
 
-                        try {
-                          const url = new URL(image.imageUrl);
-                          const s3Key = url.pathname.slice(1); // Extract S3 key by removing the leading "/"
-                          console.log('Extracted S3 Key:', s3Key);
-                          handleDeleteImage(image.id, s3Key);
-                        } catch (error) {
-                          console.error('Error extracting S3 Key:', error);
-                        }
-                      }}
-                      className='absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center'
-                    >
-                      &times;
-                    </button>
+                    {/* Title and Description */}
+                    <div className='absolute inset-0 flex flex-col justify-center items-center p-4 text-white text-center'>
+                      {/* Title */}
+                      <h3 className='text-xl font-semibold'>{project.title}</h3>
+
+                      {/* Description (truncated if too long) */}
+                      <p className='text-sm mt-2'>
+                        {project.description.length > 50
+                          ? project.description.slice(0, 50) + '...'
+                          : project.description}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -328,7 +445,7 @@ const Images = () => {
 
             {!loading && uploadedImages.length === 0 && (
               <p className='text-gray-600 text-center mt-4'>
-                No images uploaded yet.
+                No projects uploaded yet.
               </p>
             )}
           </div>
