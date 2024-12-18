@@ -33,7 +33,7 @@ export async function POST(req) {
   const secretCode = Math.floor(100000 + Math.random() * 900000).toString();
 
   // Save the invoice to DynamoDB
-  const invoiceNumber = `PRO-${String(id).padStart(6, '0')}`;
+  const invoiceNumber = `INV-${String(id).padStart(6, '0')}`;
   await dynamoDb
     .put({
       TableName: 'rahimi-invoices',
