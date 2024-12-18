@@ -9,6 +9,8 @@ AWS.config.update({
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const s3 = new AWS.S3();
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req) {
   try {
     // Fetch all projects from DynamoDB
@@ -29,7 +31,7 @@ export async function GET(req) {
         const mainImageSignedUrl = s3.getSignedUrl('getObject', {
           Bucket: process.env.AWS_S3_BUCKET_NAME,
           Key: project.mainImage.s3Key, // Directly use the s3Key
-          Expires: 3600, // URL expiry in seconds (1 hour)
+          Expires: 10, // URL expiry in seconds (1 hour)
         });
 
         // Generate signed URLs for additional images
