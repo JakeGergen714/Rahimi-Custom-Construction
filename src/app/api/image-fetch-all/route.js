@@ -64,14 +64,20 @@ export async function GET(req) {
 
     return new Response(JSON.stringify({ projects: projectsWithSignedUrls }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store', // Ensures no caching by Vercel or other intermediaries
+      },
     });
   } catch (error) {
     console.error('Error fetching projects:', error);
 
     return new Response(JSON.stringify({ error: 'Failed to fetch projects' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store', // Ensures no caching by Vercel or other intermediaries
+      },
     });
   }
 }
