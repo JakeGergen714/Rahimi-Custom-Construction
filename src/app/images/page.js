@@ -356,23 +356,6 @@ const Images = () => {
           <div className='bg-white p-4 shadow rounded-lg max-w-full flex flex-col flex-grow h-full min-h-0'>
             <h2 className='text-2xl font-medium mb-4 text-black'>Images</h2>
 
-            {/* Display Remaining Storage */}
-            {remainingStorage !== null && (
-              <>
-                <p className='text-gray-600 mb-2'>
-                  Remaining Storage: {(remainingStorage / 1024 ** 3).toFixed(2)}{' '}
-                  GB
-                </p>
-                {/* Progress Bar */}
-                <div className='w-full bg-gray-300 rounded-full h-4 mb-4'>
-                  <div
-                    className='bg-blue-600 h-4 rounded-full'
-                    style={{ width: `${usedPercentage}%` }}
-                  ></div>
-                </div>
-              </>
-            )}
-
             {/* File Upload */}
             <div className='flex flex-wrap pt-4 border-b pb-2 gap-2 sm:gap-4'>
               <button

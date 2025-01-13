@@ -201,10 +201,13 @@ const AddProjectModal = ({ isOpen, onClose, onSave, projectToEdit }) => {
   return (
     <div className='modal-overlay'>
       <div className='modal-content'>
-        <h2>{projectToEdit ? 'Edit Project' : 'Add New Project'}</h2>
+        <h2 className='text-black'>
+          {projectToEdit ? 'Edit Project' : 'Add New Project'}
+        </h2>
         <div className='form-group'>
-          <label>Project Title:</label>
+          <label className='text-black'>Project Title:</label>
           <input
+            className='text-black'
             type='text'
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -212,9 +215,10 @@ const AddProjectModal = ({ isOpen, onClose, onSave, projectToEdit }) => {
             required
           />
         </div>
-        <div className='form-group'>
-          <label>Project Description:</label>
+        <div className='form-group text-black'>
+          <label className='text-black'>Project Description:</label>
           <textarea
+            className='text-black'
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder='Enter project description'
@@ -222,8 +226,9 @@ const AddProjectModal = ({ isOpen, onClose, onSave, projectToEdit }) => {
           ></textarea>
         </div>
         <div className='form-group'>
-          <label>Main Project Picture:</label>
+          <label className='text-black'>Main Project Picture:</label>
           <input
+            className='text-black'
             type='file'
             accept='image/*'
             onChange={handleMainPictureChange}
@@ -233,21 +238,22 @@ const AddProjectModal = ({ isOpen, onClose, onSave, projectToEdit }) => {
               <img
                 src={mainPicturePreview}
                 alt='Main Project Preview'
-                className='preview-image'
+                className='preview-image text-black'
                 loading='lazy'
               />
             </div>
           )}
         </div>
         <div className='form-group'>
-          <label>Additional Project Pictures:</label>
+          <label className='text-black'>Additional Project Pictures:</label>
           <input
+            className='text-black'
             type='file'
             accept='image/*'
             multiple
             onChange={handleAdditionalPicturesChange}
           />
-          <div className='additional-images-previews scrollable-container'>
+          <div className='additional-images-previews scrollable-container text-black'>
             {/* Existing Additional Images */}
             {existingAdditionalPictures.map((img, index) => (
               <div
