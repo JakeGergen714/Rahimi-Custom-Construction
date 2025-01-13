@@ -62,7 +62,7 @@ export async function POST(req) {
 
   // Generate PDF
   const pdfBuffer = await generatePDF({
-    description: invoice.description,
+    workDescription: invoice.description,
     invoiceNumber,
     date,
     customer_name: invoice.customer_name,
@@ -121,7 +121,7 @@ export async function POST(req) {
 }
 
 const generatePDF = async ({
-  description,
+  workDescription,
   invoiceNumber,
   date,
   customer_name,
@@ -172,19 +172,55 @@ const generatePDF = async ({
   page.drawText('Total Price', { x: 450, y, font: boldFont, size: 10 });
 
   const rowHeight = 15; // Height of each row
-  y -= 15;
+  y -= 15; // Adjust initial y position
+
   // Add line items
   lines.forEach((line, index) => {
-    console.log(line);
-    line.description === 'Labor';
     let total_price =
       Number(line.price.unit_amount) * Number(line.price.unit_quantity);
+
+    // Draw the line index
     page.drawText(`${index + 1}`, { x: 40, y, font: font, size: 10 });
-    page.drawText(
-      line.description +
-        (line.description === 'Labor' ? ' - ' + description : ''),
-      { x: 80, y, font: font, size: 10 }
-    );
+
+    let descriptionY = y; // Track the Y position for the description
+    const descriptionLineLength = 40; // Max characters per line
+    let description =
+      line.description === 'Labor'
+        ? 'Labor - ' + workDescription
+        : line.description; // Prepare description
+    let descriptionLines = []; // Array to hold wrapped lines
+    const descriptionWords = description.split(' '); // Split the description into words
+
+    let currentLine = ''; // To accumulate words for each line
+
+    descriptionWords.forEach((word) => {
+      // Check if adding the word would exceed the line length
+      if ((currentLine + word).length <= descriptionLineLength) {
+        currentLine += (currentLine ? ' ' : '') + word; // Add word with a space if not the first word
+      } else {
+        // Push the current line to the array and start a new line
+        descriptionLines.push(currentLine);
+        currentLine = word; // Start new line with the current word
+      }
+    });
+
+    // Push the last line if it exists
+    if (currentLine) {
+      descriptionLines.push(currentLine);
+    }
+
+    // Draw each line of the wrapped description
+    descriptionLines.forEach((descLine, i) => {
+      page.drawText(descLine, {
+        x: 80,
+        y: descriptionY,
+        font: font,
+        size: 10,
+      });
+      descriptionY -= rowHeight; // Move Y position for the next line
+    });
+
+    // Draw unit quantity, unit amount, and total price
     page.drawText(`${Number(line.price.unit_quantity)}`, {
       x: 300,
       y,
@@ -203,7 +239,9 @@ const generatePDF = async ({
       font: font,
       size: 10,
     });
-    y -= 15;
+
+    // Update `y` for the next line item
+    y = descriptionY - rowHeight; // Add extra row height for spacing
   });
 
   // Add total amount
