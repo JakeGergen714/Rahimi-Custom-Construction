@@ -44,5 +44,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ['/invoices', '/login'], // Apply middleware to these routes
+  matcher: ['/invoices', '/login', '/images', '/proposals'], // Apply middleware to these routes
 };

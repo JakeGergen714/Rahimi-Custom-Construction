@@ -11,6 +11,8 @@ import AWS from 'aws-sdk';
 import fs from 'fs';
 import path from 'path';
 import Handlebars from 'handlebars';
+import { parse } from 'cookie';
+import jwt from 'jsonwebtoken';
 
 // AWS DynamoDB setup
 const dynamoDb = new AWS.DynamoDB.DocumentClient({
@@ -23,6 +25,26 @@ const logoPath = path.resolve('public/logo.jpg');
 const logoBase64 = fs.readFileSync(logoPath, 'base64');
 
 export async function POST(req) {
+  const cookies = req.headers.get('cookie');
+  const parsedCookies = parse(cookies || '');
+  const token = parsedCookies.auth_token;
+
+  if (!token) {
+    return NextResponse.json(
+      { error: 'Unauthorized: No token provided' },
+      { status: 401 }
+    );
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  if (!decoded.isAdmin) {
+    return NextResponse.json(
+      { error: 'Unauthorized: Not an admin' },
+      { status: 401 }
+    );
+  }
+
   const invoice = await req.json();
 
   // Generate a unique invoice ID

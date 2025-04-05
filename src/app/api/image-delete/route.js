@@ -1,4 +1,6 @@
 import AWS from 'aws-sdk';
+import { parse } from 'cookie';
+import jwt from 'jsonwebtoken';
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -10,6 +12,26 @@ const s3 = new AWS.S3();
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 export async function DELETE(req) {
+  const cookies = req.headers.get('cookie');
+  const parsedCookies = parse(cookies || '');
+  const token = parsedCookies.auth_token;
+
+  if (!token) {
+    return NextResponse.json(
+      { error: 'Unauthorized: No token provided' },
+      { status: 401 }
+    );
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  if (!decoded.isAdmin) {
+    return NextResponse.json(
+      { error: 'Unauthorized: Not an admin' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { id, s3Key } = await req.json();
 

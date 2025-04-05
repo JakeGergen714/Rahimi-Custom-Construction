@@ -1,6 +1,8 @@
 // backend/api/projects-edit.js
 import AWS from 'aws-sdk';
 import { nanoid } from 'nanoid';
+import { parse } from 'cookie';
+import jwt from 'jsonwebtoken';
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -12,6 +14,26 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const s3 = new AWS.S3();
 
 export async function PUT(req) {
+  const cookies = req.headers.get('cookie');
+  const parsedCookies = parse(cookies || '');
+  const token = parsedCookies.auth_token;
+
+  if (!token) {
+    return NextResponse.json(
+      { error: 'Unauthorized: No token provided' },
+      { status: 401 }
+    );
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  if (!decoded.isAdmin) {
+    return NextResponse.json(
+      { error: 'Unauthorized: Not an admin' },
+      { status: 401 }
+    );
+  }
+
   try {
     const projectData = await req.json();
     console.log('Received project data for update:', projectData);

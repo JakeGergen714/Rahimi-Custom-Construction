@@ -1,4 +1,6 @@
 import AWS from 'aws-sdk';
+import { parse } from 'cookie';
+import jwt from 'jsonwebtoken';
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient({
   region: 'us-east-2',
@@ -8,6 +10,26 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient({
 
 export async function PUT(req) {
   try {
+    const cookies = req.headers.get('cookie');
+    const parsedCookies = parse(cookies || '');
+    const token = parsedCookies.auth_token;
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized: No token provided' },
+        { status: 401 }
+      );
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!decoded.isAdmin) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Not an admin' },
+        { status: 401 }
+      );
+    }
+
     const invoice = await req.json();
 
     if (!invoice || !invoice.id) {

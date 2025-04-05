@@ -1,6 +1,8 @@
 // backend/api/project-upload.js
 import AWS from 'aws-sdk';
 import { nanoid } from 'nanoid';
+import { parse } from 'cookie';
+import jwt from 'jsonwebtoken';
 
 // Configure AWS
 AWS.config.update({
@@ -13,6 +15,26 @@ const s3 = new AWS.S3();
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 export async function POST(req) {
+  const cookies = req.headers.get('cookie');
+  const parsedCookies = parse(cookies || '');
+  const token = parsedCookies.auth_token;
+
+  if (!token) {
+    return NextResponse.json(
+      { error: 'Unauthorized: No token provided' },
+      { status: 401 }
+    );
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  if (!decoded.isAdmin) {
+    return NextResponse.json(
+      { error: 'Unauthorized: Not an admin' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { title, description, mainImage, additionalImages } =
       await req.json();
