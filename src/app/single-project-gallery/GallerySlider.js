@@ -66,9 +66,9 @@ export default function GallerySlider({ projects }) {
               {/* Image Slide */}
               <div className='relative w-full h-full flex justify-center items-center'>
                 <Image
-                  src={image.signedUrl}
+                  src='premium_photo-1673264933048-3bd3f5b86f9d.jpg'
                   layout='fill'
-                  objectFit='cover'
+                  objectFit='contain'
                   alt={image.title}
                 />
                 {/* Overlay Text */}
