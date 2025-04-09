@@ -1,6 +1,7 @@
 import AWS from 'aws-sdk';
 import { parse } from 'cookie';
 import jwt from 'jsonwebtoken';
+import { NextResponse } from 'next/server'; // Use NextResponse for handling server responses
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,

@@ -12,6 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import { parse } from 'cookie';
 import jwt from 'jsonwebtoken';
+import { NextResponse } from 'next/server'; // Use NextResponse for handling server responses
 
 // AWS DynamoDB setup
 const dynamoDb = new AWS.DynamoDB.DocumentClient({
