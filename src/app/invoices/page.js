@@ -175,8 +175,8 @@ const AdminInvoicesPage2 = () => {
   return (
     <div className='flex h-screen'>
       {/* Hamburger Icon */}
-      <div className='fixed top-4 left-4 z-50 md:hidden'>
-        <button onClick={toggleSidebar} className='text-white text-2xl'>
+      <div className='fixed top-1 left-1 z-50 md:hidden'>
+        <button onClick={toggleSidebar} className='text-black text-4xl'>
           {isSidebarOpen ? <AiOutlineClose /> : <AiOutlineMenu />}
         </button>
       </div>
@@ -219,8 +219,6 @@ const AdminInvoicesPage2 = () => {
       {/* Main content area */}
       <div className='flex-1 main-content-container bg-gray-200 p-6 w-full'>
         <div className='innerContainer sm:max-w-[640px] md:max-w-[768px] lg:max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1536px] mx-auto flex flex-col h-full'>
-          <h1 className='text-3xl font-semibold mb-6'>Admin Panel</h1>
-
           {/* Invoice Table */}
           <div className='bg-white p-4 shadow rounded-lg max-w-full flex flex-col flex-grow h-full min-h-0'>
             <h2 className='text-2xl font-medium mb-4'>Invoices</h2>

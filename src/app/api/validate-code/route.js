@@ -41,7 +41,7 @@ export async function POST(req) {
 
     // Validate the code and check if it is within the time limit (e.g., 10 minutes)
     const timeElapsed = Date.now() - timestamp;
-    const timeLimit = 10 * 60 * 1000; // 10 minutes in milliseconds
+    const timeLimit = 10 * 60 * 1000;
 
     if (storedCode !== code) {
       return NextResponse.json({ error: 'Invalid code' }, { status: 401 });
@@ -73,7 +73,7 @@ export async function POST(req) {
         httpOnly: true, // Prevent JavaScript from accessing the cookie
         secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
         sameSite: 'Strict', // Prevent CSRF attacks
-        maxAge: 60 * 60 * 24, // 1 day expiration
+        maxAge: 60 * 60 * 24 * 30, // 30 day expiration
         path: '/', // Cookie is accessible on all pages
       })
     );

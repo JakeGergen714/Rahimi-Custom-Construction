@@ -55,26 +55,9 @@ const Images = () => {
     }
   };
 
-  // Fetch remaining storage from the server
-  const fetchRemainingStorage = async () => {
-    try {
-      const response = await fetch('/api/image-storage-remaining');
-      const data = await response.json();
-
-      if (response.ok) {
-        setRemainingStorage(data.remainingStorage);
-      } else {
-        console.error('Error fetching remaining storage:', data.error);
-      }
-    } catch (error) {
-      console.error('Error fetching remaining storage:', error);
-    }
-  };
-
   // Fetch projects and remaining storage when the component mounts
   useEffect(() => {
     fetchImages();
-    fetchRemainingStorage();
   }, []);
 
   // Calculate used storage and percentage
@@ -301,11 +284,38 @@ const Images = () => {
     }
   };
 
+  const handleDeleteProject = async (project) => {
+    console.log(project);
+    // 1) Confirm with the user
+    const ok = window.confirm(`Delete project “${project.title}”?`);
+    if (!ok) return;
+
+    try {
+      // 2) Call DELETE endpoint
+      const res = await fetch('/api/project-delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id }),
+      });
+
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Unknown error');
+
+      // 3) Remove from state
+      setUploadedImages((current) =>
+        current.filter((p) => p.id !== project.id)
+      );
+    } catch (err) {
+      console.error('Delete failed', err);
+      alert('Failed to delete project: ' + err.message);
+    }
+  };
+
   return (
     <div className='flex h-screen'>
       {/* Hamburger Icon */}
-      <div className='fixed top-4 left-4 z-50 md:hidden'>
-        <button onClick={toggleSidebar} className='text-white text-2xl'>
+      <div className='fixed top-1 left-1 z-50 md:hidden'>
+        <button onClick={toggleSidebar} className='text-black text-4xl'>
           {isSidebarOpen ? <AiOutlineClose /> : <AiOutlineMenu />}
         </button>
       </div>
@@ -313,7 +323,7 @@ const Images = () => {
       {/* Sidebar */}
       <div
         ref={menuRef}
-        className={`fixed left-0 top-0 h-full w-32 bg-slate-700 p-4 transform ${
+        className={`z-50 fixed left-0 top-0 h-full w-32 bg-slate-700 p-4 transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } transition-transform duration-300 md:translate-x-0 md:static`}
       >
@@ -348,10 +358,6 @@ const Images = () => {
       {/* Main content area */}
       <div className='flex-1 main-content-container bg-gray-200 w-4/5 h-full p-6'>
         <div className='innerContainer sm:max-w-[640px] md:max-w-[768px] lg:max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1536px] mx-auto flex flex-col h-full'>
-          <h1 className='text-3xl font-semibold mb-6 text-black'>
-            Admin Panel
-          </h1>
-
           {/* Image Upload */}
           <div className='bg-white p-4 shadow rounded-lg max-w-full flex flex-col flex-grow h-full min-h-0'>
             <h2 className='text-2xl font-medium mb-4 text-black'>Images</h2>
@@ -396,6 +402,18 @@ const Images = () => {
                     className='relative rounded-lg overflow-hidden shadow-lg cursor-pointer'
                     onClick={() => handleEditProject(project)} // Open modal with project data
                   >
+                    {/* Delete button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProject(project);
+                      }}
+                      className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-red-600 text-white rounded-full hover:bg-red-700 focus:outline-none z-10 '
+                      aria-label='Delete project'
+                    >
+                      <AiOutlineClose size={16} />
+                    </button>
+
                     {/* Main Image */}
                     {project.mainImage && (
                       <div
